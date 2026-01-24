@@ -260,10 +260,10 @@ const DashboardScreen = ({ navigation }) => {
                             styles.statusIconContainer,
                             canteen.isOpen ? styles.iconContainerOpen : styles.iconContainerClosed
                         ]}>
-                            <Ionicons 
-                                name={canteen.isOpen ? "storefront" : "storefront-outline"} 
-                                size={28} 
-                                color={colors.white} 
+                            <Ionicons
+                                name={canteen.isOpen ? "storefront" : "storefront-outline"}
+                                size={28}
+                                color={colors.white}
                             />
                         </View>
                         <Text style={styles.statusCardTitle}>Canteen</Text>
@@ -294,10 +294,10 @@ const DashboardScreen = ({ navigation }) => {
                             canteen.isOnlineOrdersEnabled ? styles.iconContainerOnline : styles.iconContainerOffline,
                             !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.iconContainerDisabled
                         ]}>
-                            <Ionicons 
-                                name={canteen.isOnlineOrdersEnabled ? "globe" : "globe-outline"} 
-                                size={28} 
-                                color={colors.white} 
+                            <Ionicons
+                                name={canteen.isOnlineOrdersEnabled ? "globe" : "globe-outline"}
+                                size={28}
+                                color={colors.white}
                             />
                         </View>
                         <Text style={[
@@ -315,8 +315,8 @@ const DashboardScreen = ({ navigation }) => {
                             styles.statusCardHint,
                             !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.textDisabled
                         ]}>
-                            {!canteen.isOpen && !canteen.isOnlineOrdersEnabled 
-                                ? 'Open canteen first' 
+                            {!canteen.isOpen && !canteen.isOnlineOrdersEnabled
+                                ? 'Open canteen first'
                                 : `Tap to ${canteen.isOnlineOrdersEnabled ? 'disable' : 'enable'}`
                             }
                         </Text>

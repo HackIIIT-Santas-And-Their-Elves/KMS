@@ -51,9 +51,9 @@ const MenuManagementScreen = () => {
     const handleSave = async () => {
         try {
             setUploading(true);
-            
+
             let imageUrl = formData.imageUrl;
-            
+
             // Upload new image if selected
             if (imageUri && imageUri !== formData.imageUrl) {
                 console.log('� Uploading image...');
@@ -236,11 +236,22 @@ const MenuManagementScreen = () => {
                         <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
                     </View>
                 )}
-                
+
                 <View style={styles.itemDetails}>
                     <View style={styles.itemHeader}>
                         <View style={styles.itemInfo}>
-                            <Text style={styles.itemName}>{item.name}</Text>
+                            <View style={styles.itemNameRow}>
+                                <View style={[
+                                    styles.vegBadge,
+                                    item.isVeg ? styles.vegBadgeGreen : styles.vegBadgeRed
+                                ]}>
+                                    <View style={[
+                                        styles.vegDot,
+                                        item.isVeg ? styles.vegDotGreen : styles.vegDotRed
+                                    ]} />
+                                </View>
+                                <Text style={styles.itemName}>{item.name}</Text>
+                            </View>
                             <Text style={styles.itemPrice}>₹{item.price}</Text>
                         </View>
                         <View style={styles.itemActions}>
@@ -304,7 +315,7 @@ const MenuManagementScreen = () => {
                                 {imageUri ? (
                                     <View style={styles.imagePreviewContainer}>
                                         <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={styles.removeImageButton}
                                             onPress={removeImage}
                                         >
@@ -317,16 +328,16 @@ const MenuManagementScreen = () => {
                                         <Text style={styles.imagePlaceholderText}>No image selected</Text>
                                     </View>
                                 )}
-                                
+
                                 <View style={styles.imageButtonsRow}>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={styles.imageButton}
                                         onPress={takePhoto}
                                     >
                                         <Ionicons name="camera" size={20} color={colors.white} />
                                         <Text style={styles.imageButtonText}>Camera</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={styles.imageButton}
                                         onPress={pickImageFromGallery}
                                     >
@@ -357,6 +368,39 @@ const MenuManagementScreen = () => {
                                 onChangeText={(text) => setFormData({ ...formData, price: text })}
                                 keyboardType="numeric"
                             />
+
+                            {/* Veg/Non-Veg Toggle */}
+                            <View style={styles.vegToggleContainer}>
+                                <Text style={styles.vegToggleLabel}>Food Type</Text>
+                                <View style={styles.vegToggleButtons}>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.vegToggleButton,
+                                            formData.isVeg && styles.vegToggleButtonActive,
+                                        ]}
+                                        onPress={() => setFormData({ ...formData, isVeg: true })}
+                                    >
+                                        <View style={[styles.vegIndicator, styles.vegIndicatorGreen]} />
+                                        <Text style={[
+                                            styles.vegToggleText,
+                                            formData.isVeg && styles.vegToggleTextActive
+                                        ]}>Veg</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.vegToggleButton,
+                                            !formData.isVeg && styles.nonVegToggleButtonActive,
+                                        ]}
+                                        onPress={() => setFormData({ ...formData, isVeg: false })}
+                                    >
+                                        <View style={[styles.vegIndicator, styles.vegIndicatorRed]} />
+                                        <Text style={[
+                                            styles.vegToggleText,
+                                            !formData.isVeg && styles.vegToggleTextActive
+                                        ]}>Non-Veg</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
 
                             <View style={styles.modalButtons}>
                                 <TouchableOpacity
@@ -602,6 +646,95 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: colors.white,
         fontWeight: 'bold',
+    },
+    // Veg/Non-Veg toggle styles
+    vegToggleContainer: {
+        marginBottom: 16,
+    },
+    vegToggleLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 8,
+    },
+    vegToggleButtons: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    vegToggleButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        borderWidth: 2,
+        borderColor: colors.border,
+        backgroundColor: colors.surface,
+        gap: 8,
+    },
+    vegToggleButtonActive: {
+        borderColor: '#22C55E',
+        backgroundColor: '#F0FDF4',
+    },
+    nonVegToggleButtonActive: {
+        borderColor: '#EF4444',
+        backgroundColor: '#FEF2F2',
+    },
+    vegToggleText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textSecondary,
+    },
+    vegToggleTextActive: {
+        color: colors.text,
+    },
+    vegIndicator: {
+        width: 16,
+        height: 16,
+        borderRadius: 3,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    vegIndicatorGreen: {
+        borderColor: '#22C55E',
+    },
+    vegIndicatorRed: {
+        borderColor: '#EF4444',
+    },
+    // Veg badge styles for menu item cards
+    itemNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
+    vegBadge: {
+        width: 16,
+        height: 16,
+        borderRadius: 3,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    vegBadgeGreen: {
+        borderColor: '#22C55E',
+    },
+    vegBadgeRed: {
+        borderColor: '#EF4444',
+    },
+    vegDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    vegDotGreen: {
+        backgroundColor: '#22C55E',
+    },
+    vegDotRed: {
+        backgroundColor: '#EF4444',
     },
 });
 

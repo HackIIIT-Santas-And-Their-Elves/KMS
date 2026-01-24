@@ -110,7 +110,23 @@ router.get('/my', protect, async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.user._id })
             .populate('canteenId', 'name location')
-            .sort('-createdAt');
+            .populate({
+                path: 'items.menuItem',
+                select: 'isVeg'
+            })
+            .sort('-createdAt')
+            .lean();
+
+        // Backfill isVeg from menuItem if missing (for legacy orders)
+        orders.forEach(order => {
+            if (order.items) {
+                order.items.forEach(item => {
+                    if (item.isVeg === undefined && item.menuItem && item.menuItem.isVeg !== undefined) {
+                        item.isVeg = item.menuItem.isVeg;
+                    }
+                });
+            }
+        });
 
         res.json({
             success: true,
@@ -132,7 +148,6 @@ router.get('/all', protect, authorize('ADMIN'), async (req, res) => {
     try {
         const { status } = req.query;
         const query = {};
-        
         if (status) {
             query.status = status;
         }

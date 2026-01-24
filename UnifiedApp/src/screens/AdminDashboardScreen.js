@@ -133,7 +133,6 @@ const DashboardScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.statsContainer}>
-                <TouchableOpacity 
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('total')}
                     activeOpacity={0.7}
@@ -144,7 +143,6 @@ const DashboardScreen = ({ navigation }) => {
                     <Text style={styles.tapHint}>Tap to view</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('open')}
                     activeOpacity={0.7}
@@ -155,7 +153,6 @@ const DashboardScreen = ({ navigation }) => {
                     <Text style={styles.tapHint}>Tap to view</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('online')}
                     activeOpacity={0.7}
