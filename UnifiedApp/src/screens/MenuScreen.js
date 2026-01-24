@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     Alert,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { menuAPI } from '../services/api';
@@ -114,32 +115,43 @@ const MenuScreen = ({ route, navigation }) => {
 
     const renderMenuItem = ({ item }) => (
         <View style={styles.card}>
-            <View style={styles.itemHeader}>
-                <View style={styles.itemInfo}>
-                    <View style={styles.nameRow}>
-                        <Text style={styles.itemName}>{item.name}</Text>
-                        {item.isVeg !== undefined && (
-                            <View style={[styles.vegBadge, { borderColor: item.isVeg ? colors.success : colors.error }]}>
-                                <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : colors.error }]} />
-                            </View>
-                        )}
-                    </View>
-                    {item.description ? (
-                        <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-                    ) : null}
-                    <Text style={styles.category}>{item.category}</Text>
+            {/* Menu Item Image */}
+            {item.imageUrl ? (
+                <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+            ) : (
+                <View style={styles.noImagePlaceholder}>
+                    <Ionicons name="fast-food-outline" size={40} color={colors.textSecondary} />
                 </View>
-            </View>
-
-            <View style={styles.itemFooter}>
-                <Text style={styles.price}>₹{item.price}</Text>
-                {item.isAvailable ? (
-                    renderQuantitySelector(item)
-                ) : (
-                    <View style={styles.unavailableButton}>
-                        <Text style={styles.unavailableText}>Unavailable</Text>
+            )}
+            
+            <View style={styles.cardBody}>
+                <View style={styles.itemHeader}>
+                    <View style={styles.itemInfo}>
+                        <View style={styles.nameRow}>
+                            <Text style={styles.itemName}>{item.name}</Text>
+                            {item.isVeg !== undefined && (
+                                <View style={[styles.vegBadge, { borderColor: item.isVeg ? colors.success : colors.error }]}>
+                                    <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : colors.error }]} />
+                                </View>
+                            )}
+                        </View>
+                        {item.description ? (
+                            <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+                        ) : null}
+                        <Text style={styles.category}>{item.category}</Text>
                     </View>
-                )}
+                </View>
+
+                <View style={styles.itemFooter}>
+                    <Text style={styles.price}>₹{item.price}</Text>
+                    {item.isAvailable ? (
+                        renderQuantitySelector(item)
+                    ) : (
+                        <View style={styles.unavailableButton}>
+                            <Text style={styles.unavailableText}>Unavailable</Text>
+                        </View>
+                    )}
+                </View>
             </View>
         </View>
     );
@@ -207,13 +219,28 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: colors.white,
         borderRadius: 12,
-        padding: 16,
         marginBottom: 12,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
+        overflow: 'hidden',
+    },
+    itemImage: {
+        width: '100%',
+        height: 160,
+        resizeMode: 'cover',
+    },
+    noImagePlaceholder: {
+        width: '100%',
+        height: 120,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cardBody: {
+        padding: 16,
     },
     itemHeader: {
         marginBottom: 12,
