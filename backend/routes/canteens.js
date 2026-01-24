@@ -132,6 +132,13 @@ router.put('/:id', protect, authorize('ADMIN', 'CANTEEN'), async (req, res) => {
 // @access  Private (Canteen owner only)
 router.post('/:id/toggle-open', protect, authorize('CANTEEN', 'ADMIN'), async (req, res) => {
     try {
+        console.log('🔄 Toggle open request:', {
+            requestedCanteenId: req.params.id,
+            userRole: req.user.role,
+            userCanteenId: req.user.canteenId,
+            match: req.user.canteenId?.toString() === req.params.id
+        });
+
         const canteen = await Canteen.findById(req.params.id);
 
         if (!canteen) {
@@ -143,6 +150,7 @@ router.post('/:id/toggle-open', protect, authorize('CANTEEN', 'ADMIN'), async (r
 
         // Check if user is canteen owner
         if (req.user.role === 'CANTEEN' && req.user.canteenId.toString() !== req.params.id) {
+            console.log('❌ Authorization failed - canteenId mismatch');
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to update this canteen'

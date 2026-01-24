@@ -31,7 +31,8 @@ const userSchema = new mongoose.Schema({
         ref: 'Canteen',
         required: function () {
             return this.role === 'CANTEEN';
-        }
+        },
+        default: null
     },
     createdAt: {
         type: Date,

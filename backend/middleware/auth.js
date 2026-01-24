@@ -27,8 +27,16 @@ exports.protect = async (req, res, next) => {
             });
         }
 
+        console.log('🔐 Auth middleware - User:', {
+            id: req.user._id,
+            role: req.user.role,
+            canteenId: req.user.canteenId,
+            hasCanteenId: !!req.user.canteenId
+        });
+
         next();
     } catch (error) {
+        console.error('🔐 Auth middleware error:', error.message);
         return res.status(401).json({
             success: false,
             message: 'Not authorized to access this route'

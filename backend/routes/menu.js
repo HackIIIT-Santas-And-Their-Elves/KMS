@@ -56,6 +56,13 @@ router.post('/', protect, authorize('CANTEEN', 'ADMIN'), async (req, res) => {
     try {
         const { canteenId } = req.body;
 
+        console.log('➕ Create menu item request:', {
+            requestedCanteenId: canteenId,
+            userRole: req.user.role,
+            userCanteenId: req.user.canteenId,
+            match: req.user.canteenId?.toString() === canteenId
+        });
+
         // Verify canteen exists
         const canteen = await Canteen.findById(canteenId);
         if (!canteen) {
@@ -67,6 +74,7 @@ router.post('/', protect, authorize('CANTEEN', 'ADMIN'), async (req, res) => {
 
         // Check if user is canteen owner
         if (req.user.role === 'CANTEEN' && req.user.canteenId.toString() !== canteenId) {
+            console.log('❌ Authorization failed - canteenId mismatch for menu creation');
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to add items to this canteen'
