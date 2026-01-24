@@ -9,9 +9,10 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
+    Image, // Added Image import
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, UtensilsCrossed } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native'; // Removed UtensilsCrossed
 
 // --- NEW PROFESSIONAL THEME ---
 const theme = {
@@ -64,13 +65,16 @@ const LoginScreen = ({ navigation }) => {
                 style={styles.keyboardView}
             >
                 <View style={styles.content}>
-                    {/* Header Section */}
+                    {/* Header Section with Image */}
                     <View style={styles.header}>
-                        <View style={styles.iconContainer}>
-                            <UtensilsCrossed size={48} color={theme.primary} />
-                        </View>
-                        <Text style={styles.title}>KMS</Text>
-                        <Text style={styles.subtitle}>Khana Management System</Text>
+                        {/* Make sure 'logo.png' exists in your 'assets' folder.
+                           Adjust width/height in styles.logo to fit your specific image aspect ratio.
+                        */}
+                        <Image 
+                            source={require('../assets/KMSapp2.png')} 
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
                     </View>
 
                     {/* Form Section */}
@@ -162,28 +166,13 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginBottom: 48,
+        marginBottom: 40,
     },
-    iconContainer: {
-        width: 80,
-        height: 80,
-        backgroundColor: '#E0E7FF', // Light Indigo tint (matching primary)
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    title: {
-        fontSize: 42,
-        fontWeight: '800',
-        color: theme.primary,
-        letterSpacing: 1,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: theme.textSecondary,
-        fontWeight: '500',
-        marginTop: 4,
+    // New Logo Style
+    logo: {
+        width: 500,  // Adjust based on your image size
+        height: 400, // Adjust based on your image size
+        marginBottom: -100,
     },
     form: {
         width: '100%',
@@ -230,12 +219,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     button: {
-        backgroundColor: theme.primary, // DISTINCT ACTION COLOR
+        backgroundColor: theme.primary,
         height: 56,
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: theme.action,
+        shadowColor: theme.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
