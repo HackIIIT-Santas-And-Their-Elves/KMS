@@ -70,12 +70,19 @@ export const authAPI = {
 export const canteenAPI = {
     getAll: () => api.get('/canteens'),
     getById: (id) => api.get(`/canteens/${id}`),
+    toggleOpen: (id) => api.post(`/canteens/${id}/toggle-open`),
+    toggleOnlineOrders: (id) => api.post(`/canteens/${id}/toggle-online-orders`),
+    update: (id, data) => api.put(`/canteens/${id}`, data),
 };
 
 // Menu APIs
 export const menuAPI = {
     getByCanteen: (canteenId) => api.get(`/menu/canteen/${canteenId}`),
     getById: (id) => api.get(`/menu/${id}`),
+    create: (data) => api.post('/menu', data),
+    update: (id, data) => api.put(`/menu/${id}`, data),
+    toggleAvailability: (id) => api.patch(`/menu/${id}/toggle-availability`),
+    delete: (id) => api.delete(`/menu/${id}`),
 };
 
 // Order APIs
@@ -89,6 +96,9 @@ export const orderAPI = {
     getById: (id) => api.get(`/orders/${id}`),
     cancel: (id) => api.post(`/orders/${id}/cancel`),
     accept: (id) => api.post(`/orders/${id}/accept`),
+    prepare: (id) => api.post(`/orders/${id}/prepare`),
+    ready: (id) => api.post(`/orders/${id}/ready`),
+    complete: (id, pickupCode) => api.post(`/orders/${id}/complete`, { pickupCode }),
     updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
 };
 
