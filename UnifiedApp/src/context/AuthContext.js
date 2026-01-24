@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
             } else if (error.message?.includes('Network')) {
                 errorMessage = 'Network error - check your connection and API URL';
             }
-            
+
             console.error('❌ Registration error:', {
                 message: errorMessage,
                 status: error.response?.status,
@@ -126,11 +126,46 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // CAS Login - validates ticket with backend
+    const loginWithCAS = async (ticket, serviceUrl) => {
+        try {
+            console.log('🔐 CAS Login attempt with ticket');
+
+            const response = await authAPI.validateCASTicket(ticket, serviceUrl);
+            const { data } = response.data;
+
+            await AsyncStorage.setItem('userToken', data.token);
+            await AsyncStorage.setItem('userData', JSON.stringify(data));
+
+            setToken(data.token);
+            setUser(data);
+
+            console.log('✅ CAS Login successful:', data.email);
+            return { success: true, data };
+        } catch (error) {
+            let errorMessage = 'CAS login failed';
+
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            console.error('❌ CAS Login error:', errorMessage);
+
+            return {
+                success: false,
+                message: errorMessage
+            };
+        }
+    };
+
     const value = {
         user,
         token,
         loading,
         login,
+        loginWithCAS,
         register,
         logout,
         isAuthenticated: !!token,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,10 +9,11 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
-    Image, // Added Image import
+    Image,
+    Linking,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native'; // Removed UtensilsCrossed
+import { Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react-native';
 
 // --- NEW PROFESSIONAL THEME ---
 const theme = {
@@ -32,7 +33,57 @@ const LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const [casLoading, setCasLoading] = useState(false);
+    const { login, loginWithCAS } = useAuth();
+
+    // CAS Configuration
+    const CAS_LOGIN_URL = 'https://login.iiit.ac.in/cas/login';
+    const CAS_SERVICE_URL = 'kms://cas-callback';
+
+    // Handle deep link for CAS callback
+    useEffect(() => {
+        const handleDeepLink = async (event) => {
+            const url = event.url;
+            console.log('🔗 Deep link received:', url);
+
+            if (url && url.includes('cas-callback')) {
+                // Extract ticket from URL
+                const ticketMatch = url.match(/ticket=([^&]+)/);
+                if (ticketMatch && ticketMatch[1]) {
+                    const ticket = ticketMatch[1];
+                    console.log('🎫 CAS ticket extracted');
+
+                    setCasLoading(true);
+                    try {
+                        const result = await loginWithCAS(ticket, CAS_SERVICE_URL);
+                        if (!result.success) {
+                            Alert.alert('CAS Login Failed', result.message);
+                        } else {
+                            Alert.alert('Success', `Welcome ${result.data.name}!`);
+                        }
+                    } catch (error) {
+                        Alert.alert('Error', 'CAS authentication failed');
+                    } finally {
+                        setCasLoading(false);
+                    }
+                }
+            }
+        };
+
+        // Listen for deep links
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+
+        // Check if app was opened from a deep link
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                handleDeepLink({ url });
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [loginWithCAS]);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -43,7 +94,7 @@ const LoginScreen = ({ navigation }) => {
         setLoading(true);
         try {
             const result = await login(email, password);
-            
+
             if (!result.success) {
                 Alert.alert('Login Failed', result.message);
             } else {
@@ -55,6 +106,29 @@ const LoginScreen = ({ navigation }) => {
             Alert.alert('Error', 'Something went wrong. Please try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCASLogin = async () => {
+        setCasLoading(true);
+        try {
+            // Open CAS login page in browser
+            const casUrl = `${CAS_LOGIN_URL}?service=${encodeURIComponent(CAS_SERVICE_URL)}`;
+            console.log('🔐 Opening CAS login:', casUrl);
+
+            const supported = await Linking.canOpenURL(casUrl);
+            if (supported) {
+                await Linking.openURL(casUrl);
+            } else {
+                Alert.alert('Error', 'Cannot open CAS login page');
+            }
+        } catch (error) {
+            console.error('CAS login error:', error);
+            Alert.alert('Error', 'Failed to open CAS login');
+        } finally {
+            // Keep loading state until we get the callback
+            // It will be reset in the deep link handler
+            setTimeout(() => setCasLoading(false), 30000); // Timeout after 30s
         }
     };
 
@@ -70,8 +144,8 @@ const LoginScreen = ({ navigation }) => {
                         {/* Make sure 'logo.png' exists in your 'assets' folder.
                            Adjust width/height in styles.logo to fit your specific image aspect ratio.
                         */}
-                        <Image 
-                            source={require('../assets/KMSapp2.png')} 
+                        <Image
+                            source={require('../assets/KMSapp2.png')}
                             style={styles.logo}
                             resizeMode="contain"
                         />
@@ -108,7 +182,7 @@ const LoginScreen = ({ navigation }) => {
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
                                 />
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => setShowPassword(!showPassword)}
                                     style={styles.eyeIcon}
                                 >
@@ -135,6 +209,25 @@ const LoginScreen = ({ navigation }) => {
                         >
                             <Text style={styles.buttonText}>
                                 {loading ? 'Signing In...' : 'Sign In'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {/* OR Divider */}
+                        <View style={styles.divider}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>OR</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        {/* CAS Login Button */}
+                        <TouchableOpacity
+                            style={[styles.casButton, casLoading && styles.buttonDisabled]}
+                            onPress={handleCASLogin}
+                            disabled={casLoading}
+                        >
+                            <GraduationCap size={22} color="#FFFFFF" style={{ marginRight: 10 }} />
+                            <Text style={styles.casButtonText}>
+                                {casLoading ? 'Redirecting to IIIT...' : 'Login with IIIT CAS'}
                             </Text>
                         </TouchableOpacity>
 
@@ -251,6 +344,41 @@ const styles = StyleSheet.create({
         color: theme.primary,
         fontWeight: 'bold',
         fontSize: 15,
+    },
+    // CAS Login styles
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: theme.border,
+    },
+    dividerText: {
+        color: theme.textSecondary,
+        paddingHorizontal: 16,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    casButton: {
+        backgroundColor: '#1E40AF', // Dark Blue for IIIT branding
+        height: 56,
+        borderRadius: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#1E40AF',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    casButtonText: {
+        color: '#FFFFFF',
+        fontSize: 17,
+        fontWeight: 'bold',
     },
 });
 

@@ -17,7 +17,7 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
         console.log('🌐 API Request:', {
             method: config.method.toUpperCase(),
             url: config.url,
@@ -64,6 +64,9 @@ export const authAPI = {
     login: (email, password) => api.post('/auth/login', { email, password }),
     register: (data) => api.post('/auth/register', data),
     getProfile: () => api.get('/auth/me'),
+    // CAS Authentication
+    validateCASTicket: (ticket, service) => api.post('/auth/cas/validate', { ticket, service }),
+    getCASConfig: () => api.get('/auth/cas/config'),
 };
 
 // Canteen APIs
