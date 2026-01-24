@@ -18,7 +18,10 @@ const DashboardScreen = ({ navigation }) => {
     const { user, logout } = useAuth();
     const [canteen, setCanteen] = useState(null);
     const [orders, setOrders] = useState([]);
+    const [completedOrders, setCompletedOrders] = useState([]);
+    const [earnings, setEarnings] = useState({ daily: 0, monthly: 0 });
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' or 'completed'
 
     useEffect(() => {
         if (user?.canteenId) {
@@ -30,12 +33,15 @@ const DashboardScreen = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-            const [canteenRes, ordersRes] = await Promise.all([
+            const [canteenRes, ordersRes, completedRes] = await Promise.all([
                 canteenAPI.getById(user.canteenId),
                 orderAPI.getByCanteen(user.canteenId),
+                orderAPI.getCompletedByCanteen(user.canteenId),
             ]);
             setCanteen(canteenRes.data.data);
             setOrders(ordersRes.data.data);
+            setCompletedOrders(completedRes.data.data);
+            setEarnings(completedRes.data.earnings);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -142,6 +148,23 @@ const DashboardScreen = ({ navigation }) => {
         </View>
     );
 
+    const renderCompletedOrder = ({ item }) => (
+        <View style={styles.orderCard}>
+            <View style={styles.orderHeader}>
+                <Text style={styles.orderId}>#{item._id.slice(-6)}</Text>
+                <View style={[styles.statusBadge, styles.completedBadge]}>
+                    <Text style={styles.statusText}>COMPLETED</Text>
+                </View>
+            </View>
+
+            <Text style={styles.customerName}>{item.userId.name}</Text>
+            <Text style={styles.orderAmount}>₹{item.totalAmount}</Text>
+            <Text style={styles.orderDate}>
+                {new Date(item.updatedAt).toLocaleDateString()} at {new Date(item.updatedAt).toLocaleTimeString()}
+            </Text>
+        </View>
+    );
+
     const getStatusStyle = (status) => {
         const colors = {
             PAID: { backgroundColor: '#2196F3' },
@@ -209,17 +232,53 @@ const DashboardScreen = ({ navigation }) => {
                 </View>
             </View>
 
+            {/* Tab Navigation */}
+            <View style={styles.tabContainer}>
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'active' && styles.activeTab]}
+                    onPress={() => setActiveTab('active')}
+                >
+                    <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>
+                        Active Orders ({orders.length})
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'completed' && styles.activeTab]}
+                    onPress={() => setActiveTab('completed')}
+                >
+                    <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>
+                        Completed ({completedOrders.length})
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Earnings Summary (only show in completed tab) */}
+            {activeTab === 'completed' && (
+                <View style={styles.earningsContainer}>
+                    <View style={styles.earningsCard}>
+                        <Text style={styles.earningsLabel}>Today's Earnings</Text>
+                        <Text style={styles.earningsAmount}>₹{earnings.daily.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.earningsCard}>
+                        <Text style={styles.earningsLabel}>This Month</Text>
+                        <Text style={styles.earningsAmount}>₹{earnings.monthly.toFixed(2)}</Text>
+                    </View>
+                </View>
+            )}
+
+            {/* Orders List */}
             <View style={styles.ordersSection}>
-                <Text style={styles.sectionTitle}>Active Orders ({orders.length})</Text>
                 <FlatList
-                    data={orders}
-                    renderItem={renderOrder}
+                    data={activeTab === 'active' ? orders : completedOrders}
+                    renderItem={activeTab === 'active' ? renderOrder : renderCompletedOrder}
                     keyExtractor={(item) => item._id}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} />}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
-                            <Text style={styles.emptyText}>No active orders</Text>
+                            <Text style={styles.emptyText}>
+                                {activeTab === 'active' ? 'No active orders' : 'No completed orders'}
+                            </Text>
                         </View>
                     }
                 />
@@ -292,6 +351,58 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    tabContainer: {
+        flexDirection: 'row',
+        backgroundColor: colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 16,
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    activeTab: {
+        borderBottomColor: colors.primary,
+    },
+    tabText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textSecondary,
+    },
+    activeTabText: {
+        color: colors.primary,
+    },
+    earningsContainer: {
+        flexDirection: 'row',
+        padding: 16,
+        gap: 12,
+        backgroundColor: colors.background,
+    },
+    earningsCard: {
+        flex: 1,
+        backgroundColor: colors.white,
+        padding: 16,
+        borderRadius: 12,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    earningsLabel: {
+        fontSize: 12,
+        color: colors.textSecondary,
+        marginBottom: 8,
+        fontWeight: '600',
+    },
+    earningsAmount: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.success,
+    },
     ordersSection: {
         flex: 1,
         padding: 16,
@@ -329,6 +440,9 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 12,
     },
+    completedBadge: {
+        backgroundColor: '#4CAF50',
+    },
     statusText: {
         color: colors.white,
         fontSize: 11,
@@ -344,6 +458,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: colors.primary,
         marginBottom: 12,
+    },
+    orderDate: {
+        fontSize: 12,
+        color: colors.textSecondary,
+        marginTop: 4,
     },
     orderActions: {
         flexDirection: 'row',
