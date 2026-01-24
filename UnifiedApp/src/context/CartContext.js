@@ -75,6 +75,11 @@ export const CartProvider = ({ children }) => {
         return cart.reduce((total, item) => total + item.quantity, 0);
     };
 
+    const getItemQuantity = (itemId) => {
+        const cartItem = cart.find((item) => item._id === itemId);
+        return cartItem ? cartItem.quantity : 0;
+    };
+
     const value = {
         cart,
         canteenId,
@@ -84,6 +89,7 @@ export const CartProvider = ({ children }) => {
         clearCart,
         getTotal,
         getTotalItems,
+        getItemQuantity,
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

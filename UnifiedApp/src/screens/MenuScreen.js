@@ -17,7 +17,7 @@ const MenuScreen = ({ route, navigation }) => {
     const { canteen } = route.params;
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { addToCart, getTotalItems } = useCart();
+    const { addToCart, getTotalItems, getItemQuantity, updateQuantity, removeFromCart } = useCart();
 
     useEffect(() => {
         fetchMenu();
@@ -56,11 +56,60 @@ const MenuScreen = ({ route, navigation }) => {
 
     const handleAddToCart = (item) => {
         const result = addToCart({ ...item, canteenId: canteen._id });
-        if (result.success) {
-            Alert.alert('Success', `${item.name} added to cart`);
-        } else {
+        if (!result.success) {
             Alert.alert('Error', result.message);
         }
+    };
+
+    const handleIncrement = (item) => {
+        const currentQty = getItemQuantity(item._id);
+        if (currentQty === 0) {
+            handleAddToCart(item);
+        } else {
+            updateQuantity(item._id, currentQty + 1);
+        }
+    };
+
+    const handleDecrement = (item) => {
+        const currentQty = getItemQuantity(item._id);
+        if (currentQty <= 1) {
+            removeFromCart(item._id);
+        } else {
+            updateQuantity(item._id, currentQty - 1);
+        }
+    };
+
+    const renderQuantitySelector = (item) => {
+        const quantity = getItemQuantity(item._id);
+
+        if (quantity === 0) {
+            return (
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => handleIncrement(item)}
+                >
+                    <Text style={styles.addButtonText}>ADD</Text>
+                </TouchableOpacity>
+            );
+        }
+
+        return (
+            <View style={styles.quantityContainer}>
+                <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleDecrement(item)}
+                >
+                    <Ionicons name="remove" size={18} color={colors.white} />
+                </TouchableOpacity>
+                <Text style={styles.quantityText}>{quantity}</Text>
+                <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleIncrement(item)}
+                >
+                    <Ionicons name="add" size={18} color={colors.white} />
+                </TouchableOpacity>
+            </View>
+        );
     };
 
     const renderMenuItem = ({ item }) => (
@@ -85,12 +134,7 @@ const MenuScreen = ({ route, navigation }) => {
             <View style={styles.itemFooter}>
                 <Text style={styles.price}>₹{item.price}</Text>
                 {item.isAvailable ? (
-                    <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={() => handleAddToCart(item)}
-                    >
-                        <Text style={styles.addButtonText}>Add to Cart</Text>
-                    </TouchableOpacity>
+                    renderQuantitySelector(item)
                 ) : (
                     <View style={styles.unavailableButton}>
                         <Text style={styles.unavailableText}>Unavailable</Text>
@@ -273,6 +317,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.textSecondary,
         marginTop: 16,
+    },
+    quantityContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    quantityButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    quantityText: {
+        color: colors.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+        minWidth: 28,
+        textAlign: 'center',
     },
 });
 
