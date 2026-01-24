@@ -4,7 +4,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Switch,
     FlatList,
     RefreshControl,
     Alert,
@@ -246,43 +245,94 @@ const DashboardScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.toggleContainer}>
-                    <View style={styles.toggleRow}>
-                        <Text style={styles.toggleLabel}>Canteen Open</Text>
-                        <Switch
-                            value={canteen.isOpen}
-                            onValueChange={handleToggleOpen}
-                            trackColor={{ false: colors.border, true: colors.success }}
-                            thumbColor={colors.white}
-                        />
-                    </View>
-
-                    <View style={styles.toggleRow}>
-                        <View>
-                            <Text style={styles.toggleLabel}>Online Orders</Text>
-                            {!canteen.isOpen && (
-                                <Text style={styles.toggleHint}>Open canteen first</Text>
-                            )}
-                        </View>
-                        <Switch
-                            value={canteen.isOnlineOrdersEnabled}
-                            onValueChange={handleToggleOnlineOrders}
-                            trackColor={{ false: colors.border, true: colors.success }}
-                            thumbColor={colors.white}
-                            disabled={!canteen.isOpen && !canteen.isOnlineOrdersEnabled}
-                        />
-                    </View>
-                </View>
-
-                <View style={styles.menuButton}>
+                {/* Status Cards */}
+                <View style={styles.statusCardsContainer}>
+                    {/* Canteen Open/Close Button */}
                     <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => navigation.navigate('MenuManagement')}
+                        style={[
+                            styles.statusCard,
+                            canteen.isOpen ? styles.statusCardOpen : styles.statusCardClosed
+                        ]}
+                        onPress={handleToggleOpen}
+                        activeOpacity={0.8}
                     >
-                        <Ionicons name="restaurant" size={20} color={colors.white} />
-                        <Text style={styles.buttonText}> Manage Menu</Text>
+                        <View style={[
+                            styles.statusIconContainer,
+                            canteen.isOpen ? styles.iconContainerOpen : styles.iconContainerClosed
+                        ]}>
+                            <Ionicons 
+                                name={canteen.isOpen ? "storefront" : "storefront-outline"} 
+                                size={28} 
+                                color={colors.white} 
+                            />
+                        </View>
+                        <Text style={styles.statusCardTitle}>Canteen</Text>
+                        <Text style={[
+                            styles.statusCardValue,
+                            canteen.isOpen ? styles.statusValueOpen : styles.statusValueClosed
+                        ]}>
+                            {canteen.isOpen ? 'OPEN' : 'CLOSED'}
+                        </Text>
+                        <Text style={styles.statusCardHint}>
+                            Tap to {canteen.isOpen ? 'close' : 'open'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    {/* Online Orders Button */}
+                    <TouchableOpacity
+                        style={[
+                            styles.statusCard,
+                            !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.statusCardDisabled,
+                            canteen.isOnlineOrdersEnabled ? styles.statusCardOnline : styles.statusCardOffline
+                        ]}
+                        onPress={handleToggleOnlineOrders}
+                        activeOpacity={0.8}
+                        disabled={!canteen.isOpen && !canteen.isOnlineOrdersEnabled}
+                    >
+                        <View style={[
+                            styles.statusIconContainer,
+                            canteen.isOnlineOrdersEnabled ? styles.iconContainerOnline : styles.iconContainerOffline,
+                            !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.iconContainerDisabled
+                        ]}>
+                            <Ionicons 
+                                name={canteen.isOnlineOrdersEnabled ? "globe" : "globe-outline"} 
+                                size={28} 
+                                color={colors.white} 
+                            />
+                        </View>
+                        <Text style={[
+                            styles.statusCardTitle,
+                            !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.textDisabled
+                        ]}>Online Orders</Text>
+                        <Text style={[
+                            styles.statusCardValue,
+                            canteen.isOnlineOrdersEnabled ? styles.statusValueOnline : styles.statusValueOffline,
+                            !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.textDisabled
+                        ]}>
+                            {canteen.isOnlineOrdersEnabled ? 'ENABLED' : 'DISABLED'}
+                        </Text>
+                        <Text style={[
+                            styles.statusCardHint,
+                            !canteen.isOpen && !canteen.isOnlineOrdersEnabled && styles.textDisabled
+                        ]}>
+                            {!canteen.isOpen && !canteen.isOnlineOrdersEnabled 
+                                ? 'Open canteen first' 
+                                : `Tap to ${canteen.isOnlineOrdersEnabled ? 'disable' : 'enable'}`
+                            }
+                        </Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Manage Menu Button */}
+                <TouchableOpacity
+                    style={styles.menuButton}
+                    onPress={() => navigation.navigate('MenuManagement')}
+                    activeOpacity={0.8}
+                >
+                    <Ionicons name="restaurant" size={20} color={colors.white} />
+                    <Text style={styles.menuButtonText}>Manage Menu</Text>
+                    <Ionicons name="chevron-forward" size={20} color={colors.white} />
+                </TouchableOpacity>
             </View>
 
             {/* Tab Navigation */}
@@ -453,7 +503,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: 16,
+        marginBottom: 20,
     },
     canteenName: {
         fontSize: 24,
@@ -468,40 +518,125 @@ const styles = StyleSheet.create({
     logoutHeaderButton: {
         padding: 8,
     },
-    toggleContainer: {
+    // Status Cards
+    statusCardsContainer: {
+        flexDirection: 'row',
+        gap: 12,
         marginBottom: 16,
     },
-    toggleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    statusCard: {
+        flex: 1,
+        borderRadius: 16,
+        padding: 16,
         alignItems: 'center',
-        paddingVertical: 8,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
     },
-    toggleLabel: {
-        fontSize: 16,
-        color: colors.text,
+    statusCardOpen: {
+        backgroundColor: '#E8F5E9',
+        borderWidth: 2,
+        borderColor: colors.success,
     },
-    toggleHint: {
+    statusCardClosed: {
+        backgroundColor: '#FFEBEE',
+        borderWidth: 2,
+        borderColor: colors.error,
+    },
+    statusCardOnline: {
+        backgroundColor: '#E3F2FD',
+        borderWidth: 2,
+        borderColor: colors.info || '#2196F3',
+    },
+    statusCardOffline: {
+        backgroundColor: '#FFF3E0',
+        borderWidth: 2,
+        borderColor: '#FF9800',
+    },
+    statusCardDisabled: {
+        backgroundColor: '#F5F5F5',
+        borderColor: colors.border,
+        opacity: 0.7,
+    },
+    statusIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    iconContainerOpen: {
+        backgroundColor: colors.success,
+    },
+    iconContainerClosed: {
+        backgroundColor: colors.error,
+    },
+    iconContainerOnline: {
+        backgroundColor: colors.info || '#2196F3',
+    },
+    iconContainerOffline: {
+        backgroundColor: '#FF9800',
+    },
+    iconContainerDisabled: {
+        backgroundColor: colors.textSecondary,
+    },
+    statusCardTitle: {
         fontSize: 12,
+        fontWeight: '600',
+        color: colors.textSecondary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 4,
+    },
+    statusCardValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    statusValueOpen: {
+        color: colors.success,
+    },
+    statusValueClosed: {
+        color: colors.error,
+    },
+    statusValueOnline: {
+        color: colors.info || '#2196F3',
+    },
+    statusValueOffline: {
+        color: '#FF9800',
+    },
+    statusCardHint: {
+        fontSize: 11,
         color: colors.textSecondary,
         fontStyle: 'italic',
-        marginTop: 2,
     },
+    textDisabled: {
+        color: colors.textSecondary,
+    },
+    // Menu Button
     menuButton: {
-        marginTop: 8,
-    },
-    button: {
         backgroundColor: colors.primary,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 12,
-        borderRadius: 8,
+        padding: 14,
+        borderRadius: 12,
+        gap: 8,
+        elevation: 3,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
     },
-    buttonText: {
+    menuButtonText: {
         color: colors.white,
         fontSize: 16,
         fontWeight: 'bold',
+        flex: 1,
+        textAlign: 'center',
     },
     tabContainer: {
         flexDirection: 'row',
