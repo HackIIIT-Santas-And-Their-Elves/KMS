@@ -91,6 +91,10 @@ export const menuAPI = {
 export const orderAPI = {
     create: (orderData) => api.post('/orders', orderData),
     getMy: () => api.get('/orders/my'),
+    getAll: (status) => {
+        const params = status ? `?status=${status}` : '';
+        return api.get(`/orders/all${params}`);
+    },
     getByCanteen: (canteenId, status) => {
         const params = status ? `?status=${status}` : '';
         return api.get(`/orders/canteen/${canteenId}${params}`);

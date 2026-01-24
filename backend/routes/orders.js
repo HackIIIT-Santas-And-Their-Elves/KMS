@@ -125,6 +125,36 @@ router.get('/my', protect, async (req, res) => {
     }
 });
 
+// @route   GET /api/orders/all
+// @desc    Get all orders (Admin only)
+// @access  Private (Admin)
+router.get('/all', protect, authorize('ADMIN'), async (req, res) => {
+    try {
+        const { status } = req.query;
+        const query = {};
+        
+        if (status) {
+            query.status = status;
+        }
+
+        const orders = await Order.find(query)
+            .populate('userId', 'name email')
+            .populate('canteenId', 'name location')
+            .sort('-createdAt');
+
+        res.json({
+            success: true,
+            count: orders.length,
+            data: orders
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // @route   GET /api/orders/canteen/:canteenId
 // @desc    Get orders for a canteen
 // @access  Private (Canteen owner or Admin)

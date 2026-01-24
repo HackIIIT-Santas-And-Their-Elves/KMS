@@ -14,8 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { canteenAPI } from '../services/api';
 import colors from '../constants/colors';
 
-const CanteenManagementScreen = () => {
+const CanteenManagementScreen = ({ route }) => {
+    const filter = route?.params?.filter || 'all';
     const [canteens, setCanteens] = useState([]);
+    const [filteredCanteens, setFilteredCanteens] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingCanteen, setEditingCanteen] = useState(null);
@@ -29,6 +31,14 @@ const CanteenManagementScreen = () => {
     useEffect(() => {
         fetchCanteens();
     }, []);
+
+    useEffect(() => {
+        if (filter === 'open') {
+            setFilteredCanteens(canteens.filter(c => c.isOpen));
+        } else {
+            setFilteredCanteens(canteens);
+        }
+    }, [canteens, filter]);
 
     const fetchCanteens = async () => {
         try {
@@ -163,8 +173,14 @@ const CanteenManagementScreen = () => {
 
     return (
         <View style={styles.container}>
+            {filter === 'open' && (
+                <View style={styles.filterBanner}>
+                    <Ionicons name="filter" size={18} color={colors.white} />
+                    <Text style={styles.filterText}>Showing only open canteens</Text>
+                </View>
+            )}
             <FlatList
-                data={canteens}
+                data={filteredCanteens}
                 renderItem={renderCanteen}
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.list}
@@ -184,7 +200,9 @@ const CanteenManagementScreen = () => {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
-                        <Text style={styles.emptyText}>No canteens yet</Text>
+                        <Text style={styles.emptyText}>
+                            {filter === 'open' ? 'No open canteens' : 'No canteens yet'}
+                        </Text>
                     </View>
                 }
             />
@@ -251,6 +269,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    filterBanner: {
+        backgroundColor: colors.success,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 12,
+        gap: 8,
+    },
+    filterText: {
+        color: colors.white,
+        fontSize: 14,
+        fontWeight: '600',
     },
     list: {
         padding: 16,
