@@ -70,9 +70,11 @@ export const authAPI = {
 export const canteenAPI = {
     getAll: () => api.get('/canteens'),
     getById: (id) => api.get(`/canteens/${id}`),
+    create: (data) => api.post('/canteens', data),
+    update: (id, data) => api.put(`/canteens/${id}`, data),
+    delete: (id) => api.delete(`/canteens/${id}`),
     toggleOpen: (id) => api.post(`/canteens/${id}/toggle-open`),
     toggleOnlineOrders: (id) => api.post(`/canteens/${id}/toggle-online-orders`),
-    update: (id, data) => api.put(`/canteens/${id}`, data),
 };
 
 // Menu APIs

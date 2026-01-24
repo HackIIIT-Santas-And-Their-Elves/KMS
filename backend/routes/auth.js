@@ -12,7 +12,7 @@ router.post('/register', [
     body('name').notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Please provide a valid email'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('role').isIn(['STUDENT', 'CANTEEN', 'ADMIN']).withMessage('Invalid role')
+    body('role').isIn(['STUDENT']).withMessage('Invalid role')
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -21,14 +21,20 @@ router.post('/register', [
     }
 
     try {
-        const { name, email, password, role, canteenName, canteenLocation } = req.body;
+        const { name, email, password, role } = req.body;
+        
+        // Only STUDENT can self-register
+        if (role !== 'STUDENT') {
+            return res.status(400).json({
+                success: false,
+                message: 'Only students can register. Contact an administrator for other roles.'
+            });
+        }
 
         console.log('📝 Register request:', {
             name,
             email,
-            role,
-            hasCanteenName: !!canteenName,
-            hasCanteenLocation: !!canteenLocation
+            role
         });
 
         // Check if user exists
@@ -41,54 +47,13 @@ router.post('/register', [
             });
         }
 
-        let canteenId = null;  // Initialize as null instead of undefined
-
-        // For CANTEEN role, create a canteen and link it
-        if (role === 'CANTEEN') {
-            console.log('🍽️ Creating canteen for CANTEEN user');
-            
-            if (!canteenName || !canteenLocation) {
-                console.error('❌ Missing canteen fields:', { canteenName, canteenLocation });
-                return res.status(400).json({
-                    success: false,
-                    message: 'Canteen name and location are required for canteen registration'
-                });
-            }
-
-            // Check if canteen name already exists
-            const canteenExists = await Canteen.findOne({ name: canteenName });
-            if (canteenExists) {
-                console.error('❌ Canteen already exists:', canteenName);
-                return res.status(400).json({
-                    success: false,
-                    message: 'Canteen with this name already exists'
-                });
-            }
-
-            // Create canteen
-            const canteen = await Canteen.create({
-                name: canteenName,
-                location: canteenLocation,
-                isOpen: false,
-                isOnlineOrdersEnabled: true
-            });
-
-            canteenId = canteen._id;
-            console.log('✅ Canteen created:', canteenId);
-        }
-
-        // Create user - only include canteenId if it's set
+        // Create user
         const userData = {
             name,
             email,
             password,
             role
         };
-
-        // Only add canteenId if role is CANTEEN (and it exists)
-        if (role === 'CANTEEN') {
-            userData.canteenId = canteenId;
-        }
 
         const user = await User.create(userData);
 
@@ -103,7 +68,7 @@ router.post('/register', [
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                canteenId: user.canteenId,
+                ...(user.canteenId && { canteenId: user.canteenId }),
                 token
             }
         });

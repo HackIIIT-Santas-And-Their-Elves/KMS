@@ -18,20 +18,9 @@ const RegisterScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [role, setRole] = useState('STUDENT');
     const [loading, setLoading] = useState(false);
-    
-    // Canteen-specific fields
-    const [canteenName, setCanteenName] = useState('');
-    const [canteenLocation, setCanteenLocation] = useState('');
 
     const { register } = useAuth();
-
-    const roles = [
-        { value: 'STUDENT', label: 'Student' },
-        { value: 'CANTEEN', label: 'Canteen Owner' },
-        { value: 'ADMIN', label: 'Admin' },
-    ];
 
     const validateBasicFields = () => {
         if (!name || !email || !password || !confirmPassword) {
@@ -52,22 +41,9 @@ const RegisterScreen = ({ navigation }) => {
         return true;
     };
 
-    const validateCanteenFields = () => {
-        if (!canteenName || !canteenLocation) {
-            Alert.alert('Error', 'Please provide canteen name and location');
-            return false;
-        }
-        return true;
-    };
-
     const handleRegister = async () => {
         // Basic validation for all roles
         if (!validateBasicFields()) {
-            return;
-        }
-
-        // Role-specific validation
-        if (role === 'CANTEEN' && !validateCanteenFields()) {
             return;
         }
 
@@ -77,20 +53,12 @@ const RegisterScreen = ({ navigation }) => {
             name,
             email,
             password,
-            role,
+            role: 'STUDENT',
         };
-
-        // Add role-specific data
-        if (role === 'CANTEEN') {
-            registrationData.canteenName = canteenName;
-            registrationData.canteenLocation = canteenLocation;
-        }
 
         console.log('🔐 Attempting registration with data:', {
             name,
-            email,
-            role,
-            ...(role === 'CANTEEN' && { canteenName, canteenLocation })
+            email
         });
 
         const result = await register(registrationData);
@@ -138,68 +106,6 @@ const RegisterScreen = ({ navigation }) => {
                             editable={!loading}
                         />
                     </View>
-
-                    {/* Role Selection */}
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Register As</Text>
-                        <View style={styles.roleContainer}>
-                            {roles.map((item) => (
-                                <TouchableOpacity
-                                    key={item.value}
-                                    style={[
-                                        styles.roleButton,
-                                        role === item.value && styles.roleButtonActive,
-                                    ]}
-                                    onPress={() => setRole(item.value)}
-                                    disabled={loading}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.roleButtonText,
-                                            role === item.value && styles.roleButtonTextActive,
-                                        ]}
-                                    >
-                                        {item.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </View>
-
-                    {/* Canteen-specific fields */}
-                    {role === 'CANTEEN' && (
-                        <>
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.label}>Canteen Name *</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter canteen name"
-                                    value={canteenName}
-                                    onChangeText={setCanteenName}
-                                    autoCapitalize="words"
-                                    editable={!loading}
-                                />
-                            </View>
-
-                            <View style={styles.inputContainer}>
-                                <Text style={styles.label}>Location *</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter canteen location"
-                                    value={canteenLocation}
-                                    onChangeText={setCanteenLocation}
-                                    autoCapitalize="words"
-                                    editable={!loading}
-                                />
-                            </View>
-
-                            <View style={styles.infoBox}>
-                                <Text style={styles.infoText}>
-                                    📍 Your canteen will be created and you can manage it from your dashboard.
-                                </Text>
-                            </View>
-                        </>
-                    )}
 
                     {/* Password Input */}
                     <View style={styles.inputContainer}>
