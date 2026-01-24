@@ -115,42 +115,47 @@ const MenuScreen = ({ route, navigation }) => {
 
     const renderMenuItem = ({ item }) => (
         <View style={styles.card}>
-            {/* Menu Item Image */}
-            {item.imageUrl ? (
-                <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
-            ) : (
-                <View style={styles.noImagePlaceholder}>
-                    <Ionicons name="fast-food-outline" size={40} color={colors.textSecondary} />
-                </View>
-            )}
-            
-            <View style={styles.cardBody}>
-                <View style={styles.itemHeader}>
-                    <View style={styles.itemInfo}>
-                        <View style={styles.nameRow}>
-                            <Text style={styles.itemName}>{item.name}</Text>
-                            {item.isVeg !== undefined && (
-                                <View style={[styles.vegBadge, { borderColor: item.isVeg ? colors.success : colors.error }]}>
-                                    <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : colors.error }]} />
-                                </View>
-                            )}
-                        </View>
-                        {item.description ? (
-                            <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-                        ) : null}
-                        <Text style={styles.category}>{item.category}</Text>
+            <View style={styles.cardContent}>
+                {/* Left side - Item details */}
+                <View style={styles.itemDetails}>
+                    <View style={styles.nameRow}>
+                        {item.isVeg !== undefined && (
+                            <View style={[styles.vegBadge, { borderColor: item.isVeg ? colors.success : colors.error }]}>
+                                <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : colors.error }]} />
+                            </View>
+                        )}
+                        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
                     </View>
+                    
+                    <Text style={styles.price}>₹{item.price}</Text>
+                    
+                    {item.description ? (
+                        <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+                    ) : null}
+                    
+                    <Text style={styles.category}>{item.category}</Text>
                 </View>
 
-                <View style={styles.itemFooter}>
-                    <Text style={styles.price}>₹{item.price}</Text>
-                    {item.isAvailable ? (
-                        renderQuantitySelector(item)
+                {/* Right side - Image with overlapping button */}
+                <View style={styles.imageContainer}>
+                    {item.imageUrl ? (
+                        <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
                     ) : (
-                        <View style={styles.unavailableButton}>
-                            <Text style={styles.unavailableText}>Unavailable</Text>
+                        <View style={styles.noImagePlaceholder}>
+                            <Ionicons name="fast-food-outline" size={32} color={colors.textSecondary} />
                         </View>
                     )}
+                    
+                    {/* Overlapping Add Button */}
+                    <View style={styles.addButtonWrapper}>
+                        {item.isAvailable ? (
+                            renderQuantitySelector(item)
+                        ) : (
+                            <View style={styles.unavailableButton}>
+                                <Text style={styles.unavailableText}>Unavailable</Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
             </View>
         </View>
@@ -218,102 +223,146 @@ const styles = StyleSheet.create({
     },
     card: {
         backgroundColor: colors.white,
-        borderRadius: 12,
-        marginBottom: 12,
-        elevation: 2,
+        borderRadius: 16,
+        marginBottom: 16,
+        elevation: 3,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        overflow: 'hidden',
-    },
-    itemImage: {
-        width: '100%',
-        height: 160,
-        resizeMode: 'cover',
-    },
-    noImagePlaceholder: {
-        width: '100%',
-        height: 120,
-        backgroundColor: colors.surface,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    cardBody: {
+        shadowRadius: 6,
         padding: 16,
+        paddingBottom: 20
     },
-    itemHeader: {
-        marginBottom: 12,
+    cardContent: {
+        flexDirection: 'row',
     },
-    itemInfo: {
+    itemDetails: {
         flex: 1,
+        paddingRight: 12,
+        justifyContent: 'flex-start',
     },
     nameRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    itemName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: colors.text,
-        flex: 1,
+        alignItems: 'flex-start',
+        marginBottom: 8,
     },
     vegBadge: {
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18,
         borderWidth: 2,
         borderRadius: 4,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 8,
+        marginRight: 8,
+        marginTop: 2,
     },
     vegDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
     },
+    itemName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: colors.text,
+        flex: 1,
+        lineHeight: 22,
+    },
+    price: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 6,
+    },
     description: {
-        fontSize: 14,
+        fontSize: 13,
         color: colors.textSecondary,
-        marginBottom: 4,
+        marginBottom: 6,
+        lineHeight: 18,
     },
     category: {
         fontSize: 12,
         color: colors.textSecondary,
         fontStyle: 'italic',
     },
-    itemFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    // Image container with overlapping button
+    imageContainer: {
+        width: 120,
         alignItems: 'center',
     },
-    price: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: colors.primary,
+    itemImage: {
+        width: 120,
+        height: 100,
+        borderRadius: 12,
+        resizeMode: 'cover',
+    },
+    noImagePlaceholder: {
+        width: 120,
+        height: 100,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Overlapping button wrapper
+    addButtonWrapper: {
+        position: 'absolute',
+        bottom: -10,
+        alignSelf: 'center',
     },
     addButton: {
-        backgroundColor: colors.primary,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        backgroundColor: colors.white,
+        paddingHorizontal: 24,
+        paddingVertical: 8,
         borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.primary,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
     addButtonText: {
-        color: colors.white,
+        color: colors.primary,
         fontWeight: 'bold',
         fontSize: 14,
     },
     unavailableButton: {
         backgroundColor: colors.surface,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 8,
     },
     unavailableText: {
         color: colors.textSecondary,
         fontWeight: 'bold',
+        fontSize: 12,
+    },
+    quantityContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        overflow: 'hidden',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+    },
+    quantityButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    quantityText: {
+        color: colors.white,
+        fontWeight: 'bold',
         fontSize: 14,
+        minWidth: 24,
+        textAlign: 'center',
     },
     cartButton: {
         marginRight: 16,
@@ -344,26 +393,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.textSecondary,
         marginTop: 16,
-    },
-    quantityContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.primary,
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    quantityButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    quantityText: {
-        color: colors.white,
-        fontWeight: 'bold',
-        fontSize: 16,
-        minWidth: 28,
-        textAlign: 'center',
     },
 });
 
