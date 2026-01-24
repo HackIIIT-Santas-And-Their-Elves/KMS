@@ -12,6 +12,10 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 1
+    },
+    isVeg: {
+        type: Boolean,
+        default: true
     }
 });
 

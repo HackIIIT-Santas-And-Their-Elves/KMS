@@ -132,9 +132,14 @@ const DashboardScreen = ({ navigation }) => {
             <View style={styles.itemsContainer}>
                 <Text style={styles.itemsLabel}>Items to prepare:</Text>
                 {item.items.map((orderItem, index) => (
-                    <Text key={index} style={styles.itemText}>
-                        • {orderItem.name} x{orderItem.quantity}
-                    </Text>
+                    <View key={index} style={styles.itemTextRow}>
+                        <View style={[styles.vegIndicator, { borderColor: orderItem.isVeg ? '#22c55e' : '#ef4444' }]}>
+                            <View style={[styles.vegDot, { backgroundColor: orderItem.isVeg ? '#22c55e' : '#ef4444' }]} />
+                        </View>
+                        <Text style={styles.itemText}>
+                            {orderItem.name} x{orderItem.quantity}
+                        </Text>
+                    </View>
                 ))}
             </View>
 
@@ -454,9 +459,14 @@ const DashboardScreen = ({ navigation }) => {
                                         <Text style={styles.modalLabel}>Items</Text>
                                         {selectedOrder.items.map((item, index) => (
                                             <View key={index} style={styles.modalItemRow}>
-                                                <Text style={styles.modalItemName}>
-                                                    {item.name} x{item.quantity}
-                                                </Text>
+                                                <View style={styles.modalItemNameContainer}>
+                                                    <View style={[styles.vegIndicatorModal, { borderColor: item.isVeg ? '#22c55e' : '#ef4444' }]}>
+                                                        <View style={[styles.vegDotModal, { backgroundColor: item.isVeg ? '#22c55e' : '#ef4444' }]} />
+                                                    </View>
+                                                    <Text style={styles.modalItemName}>
+                                                        {item.name} x{item.quantity}
+                                                    </Text>
+                                                </View>
                                                 <Text style={styles.modalItemPrice}>₹{item.price * item.quantity}</Text>
                                             </View>
                                         ))}
@@ -793,11 +803,29 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
         marginBottom: 4,
     },
+    itemTextRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 8,
+        marginTop: 2,
+    },
+    vegIndicator: {
+        width: 14,
+        height: 14,
+        borderWidth: 1.5,
+        borderRadius: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 6,
+    },
+    vegDot: {
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
+    },
     itemText: {
         fontSize: 13,
         color: colors.text,
-        marginLeft: 8,
-        marginTop: 2,
     },
     modalOverlay: {
         flex: 1,
@@ -859,6 +887,25 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
+    },
+    modalItemNameContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    vegIndicatorModal: {
+        width: 16,
+        height: 16,
+        borderWidth: 2,
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    vegDotModal: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     modalItemName: {
         fontSize: 15,

@@ -100,7 +100,12 @@ const OrderDetailsScreen = ({ route }) => {
                 {order.items.map((item, index) => (
                     <View key={index} style={styles.itemRow}>
                         <View style={styles.itemInfo}>
-                            <Text style={styles.itemName}>{item.name}</Text>
+                            <View style={styles.itemNameRow}>
+                                <View style={[styles.vegIndicator, { borderColor: item.isVeg ? '#22c55e' : '#ef4444' }]}>
+                                    <View style={[styles.vegDot, { backgroundColor: item.isVeg ? '#22c55e' : '#ef4444' }]} />
+                                </View>
+                                <Text style={styles.itemName}>{item.name}</Text>
+                            </View>
                             <Text style={styles.itemQuantity}>Quantity: {item.quantity}</Text>
                         </View>
                         <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
@@ -210,11 +215,29 @@ const styles = StyleSheet.create({
     itemInfo: {
         flex: 1,
     },
+    itemNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    vegIndicator: {
+        width: 16,
+        height: 16,
+        borderWidth: 2,
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    vegDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
     itemName: {
         fontSize: 16,
         fontWeight: '600',
         color: colors.text,
-        marginBottom: 4,
     },
     itemQuantity: {
         fontSize: 14,

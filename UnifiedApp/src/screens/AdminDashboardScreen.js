@@ -133,6 +133,7 @@ const DashboardScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.statsContainer}>
+                <TouchableOpacity
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('total')}
                     activeOpacity={0.7}
@@ -143,6 +144,7 @@ const DashboardScreen = ({ navigation }) => {
                     <Text style={styles.tapHint}>Tap to view</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('open')}
                     activeOpacity={0.7}
@@ -153,6 +155,7 @@ const DashboardScreen = ({ navigation }) => {
                     <Text style={styles.tapHint}>Tap to view</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity
                     style={styles.statCard}
                     onPress={() => handleStatCardPress('online')}
                     activeOpacity={0.7}
@@ -329,9 +332,14 @@ const DashboardScreen = ({ navigation }) => {
                                         <Text style={styles.detailLabel}>Items</Text>
                                         {selectedOrder.items.map((item, index) => (
                                             <View key={index} style={styles.itemRow}>
-                                                <Text style={styles.itemName}>
-                                                    {item.name} x{item.quantity}
-                                                </Text>
+                                                <View style={styles.itemNameContainer}>
+                                                    <View style={[styles.vegIndicator, { borderColor: item.isVeg ? '#22c55e' : '#ef4444' }]}>
+                                                        <View style={[styles.vegDot, { backgroundColor: item.isVeg ? '#22c55e' : '#ef4444' }]} />
+                                                    </View>
+                                                    <Text style={styles.itemName}>
+                                                        {item.name} x{item.quantity}
+                                                    </Text>
+                                                </View>
                                                 <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
                                             </View>
                                         ))}
@@ -618,6 +626,25 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
+    },
+    itemNameContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    vegIndicator: {
+        width: 16,
+        height: 16,
+        borderWidth: 2,
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    vegDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     itemName: {
         fontSize: 15,

@@ -85,9 +85,14 @@ const PaymentScreen = ({ navigation }) => {
                     <Text style={styles.sectionTitle}>Order Summary</Text>
                     {cart.map((item) => (
                         <View key={item._id} style={styles.orderItem}>
-                            <Text style={styles.itemName}>
-                                {item.name} x {item.quantity}
-                            </Text>
+                            <View style={styles.itemNameContainer}>
+                                <View style={[styles.vegIndicator, { borderColor: item.isVeg ? '#22c55e' : '#ef4444' }]}>
+                                    <View style={[styles.vegDot, { backgroundColor: item.isVeg ? '#22c55e' : '#ef4444' }]} />
+                                </View>
+                                <Text style={styles.itemName}>
+                                    {item.name} x {item.quantity}
+                                </Text>
+                            </View>
                             <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
                         </View>
                     ))}
@@ -166,7 +171,27 @@ const styles = StyleSheet.create({
     orderItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         paddingVertical: 8,
+    },
+    itemNameContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    vegIndicator: {
+        width: 16,
+        height: 16,
+        borderWidth: 2,
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    vegDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     itemName: {
         fontSize: 14,

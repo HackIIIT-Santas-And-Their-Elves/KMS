@@ -73,7 +73,8 @@ router.post('/', protect, async (req, res) => {
                 menuItem: menuItem._id,
                 name: menuItem.name,
                 price: menuItem.price,
-                quantity: item.quantity
+                quantity: item.quantity,
+                isVeg: menuItem.isVeg
             });
         }
 

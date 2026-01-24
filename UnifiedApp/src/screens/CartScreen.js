@@ -41,7 +41,12 @@ const CartScreen = ({ navigation }) => {
     const renderCartItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
+                <View style={styles.itemNameRow}>
+                    <View style={[styles.vegIndicator, { borderColor: item.isVeg ? '#22c55e' : '#ef4444' }]}>
+                        <View style={[styles.vegDot, { backgroundColor: item.isVeg ? '#22c55e' : '#ef4444' }]} />
+                    </View>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                </View>
                 <Text style={styles.itemPrice}>₹{item.price} each</Text>
             </View>
 
@@ -190,6 +195,24 @@ const styles = StyleSheet.create({
     },
     itemInfo: {
         marginBottom: 8,
+    },
+    itemNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    vegIndicator: {
+        width: 16,
+        height: 16,
+        borderWidth: 2,
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    vegDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     itemName: {
         fontSize: 17,

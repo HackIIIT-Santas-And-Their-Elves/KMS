@@ -78,9 +78,14 @@ const OrderHistoryScreen = ({ navigation }) => {
             <View style={styles.itemsContainer}>
                 <Text style={styles.itemsLabel}>Items:</Text>
                 {item.items.slice(0, 2).map((orderItem, index) => (
-                    <Text key={index} style={styles.itemText}>
-                        • {orderItem.name} x {orderItem.quantity}
-                    </Text>
+                    <View key={index} style={styles.itemTextRow}>
+                        <View style={[styles.vegIndicator, { borderColor: orderItem.isVeg ? '#22c55e' : '#ef4444' }]}>
+                            <View style={[styles.vegDot, { backgroundColor: orderItem.isVeg ? '#22c55e' : '#ef4444' }]} />
+                        </View>
+                        <Text style={styles.itemText}>
+                            {orderItem.name} x {orderItem.quantity}
+                        </Text>
+                    </View>
                 ))}
                 {item.items.length > 2 && (
                     <Text style={styles.moreItems}>+{item.items.length - 2} more items</Text>
@@ -189,10 +194,29 @@ const styles = StyleSheet.create({
         color: colors.text,
         marginBottom: 4,
     },
+    itemTextRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 8,
+        marginVertical: 2,
+    },
+    vegIndicator: {
+        width: 14,
+        height: 14,
+        borderWidth: 1.5,
+        borderRadius: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 6,
+    },
+    vegDot: {
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
+    },
     itemText: {
         fontSize: 13,
         color: colors.textSecondary,
-        marginLeft: 8,
     },
     moreItems: {
         fontSize: 13,
