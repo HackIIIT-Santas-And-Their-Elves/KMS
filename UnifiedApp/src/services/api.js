@@ -64,6 +64,8 @@ export const authAPI = {
     login: (email, password) => api.post('/auth/login', { email, password }),
     register: (data) => api.post('/auth/register', data),
     getProfile: () => api.get('/auth/me'),
+    updateProfile: (data) => api.put('/auth/profile', data),
+    changePassword: (currentPassword, newPassword) => api.put('/auth/password', { currentPassword, newPassword }),
 };
 
 // Canteen APIs

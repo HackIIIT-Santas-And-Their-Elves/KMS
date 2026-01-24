@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
             } else if (error.message?.includes('Network')) {
                 errorMessage = 'Network error - check your connection and API URL';
             }
-            
+
             console.error('❌ Registration error:', {
                 message: errorMessage,
                 status: error.response?.status,
@@ -126,6 +126,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updateUser = async (updatedUserData) => {
+        try {
+            const newUserData = { ...user, ...updatedUserData };
+            await AsyncStorage.setItem('userData', JSON.stringify(newUserData));
+            setUser(newUserData);
+        } catch (error) {
+            console.error('Error updating user:', error);
+        }
+    };
+
     const value = {
         user,
         token,
@@ -133,6 +143,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateUser,
         isAuthenticated: !!token,
         userRole: user?.role, // STUDENT, CANTEEN, or ADMIN
     };
