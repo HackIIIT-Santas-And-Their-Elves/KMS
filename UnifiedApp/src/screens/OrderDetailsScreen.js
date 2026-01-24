@@ -48,7 +48,7 @@ const OrderDetailsScreen = ({ route }) => {
 
     return (
         <ScrollView style={styles.container}>
-            {order.pickupCode && (
+            {order.pickupCode && order.status !== 'COMPLETED' && (
                 <View style={styles.qrSection}>
                     <Text style={styles.qrTitle}>Pickup Code</Text>
                     <View style={styles.qrContainer}>
