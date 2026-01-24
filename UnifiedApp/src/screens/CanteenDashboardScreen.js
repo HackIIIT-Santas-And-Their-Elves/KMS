@@ -8,6 +8,8 @@ import {
     FlatList,
     RefreshControl,
     Alert,
+    Modal,
+    ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +24,7 @@ const DashboardScreen = ({ navigation }) => {
     const [earnings, setEarnings] = useState({ daily: 0, monthly: 0 });
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('active'); // 'active' or 'completed'
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
         if (user?.canteenId) {
@@ -99,7 +102,11 @@ const DashboardScreen = ({ navigation }) => {
     };
 
     const renderOrder = ({ item }) => (
-        <View style={styles.orderCard}>
+        <TouchableOpacity
+            style={styles.orderCard}
+            onPress={() => setSelectedOrder(item)}
+            activeOpacity={0.7}
+        >
             <View style={styles.orderHeader}>
                 <Text style={styles.orderId}>#{item._id.slice(-6)}</Text>
                 <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
@@ -108,13 +115,27 @@ const DashboardScreen = ({ navigation }) => {
             </View>
 
             <Text style={styles.customerName}>{item.userId.name}</Text>
+
+            {/* Items List */}
+            <View style={styles.itemsContainer}>
+                <Text style={styles.itemsLabel}>Items to prepare:</Text>
+                {item.items.map((orderItem, index) => (
+                    <Text key={index} style={styles.itemText}>
+                        • {orderItem.name} x{orderItem.quantity}
+                    </Text>
+                ))}
+            </View>
+
             <Text style={styles.orderAmount}>₹{item.totalAmount}</Text>
 
             <View style={styles.orderActions}>
                 {item.status === 'PAID' && (
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => handleOrderAction(item._id, 'accept')}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            handleOrderAction(item._id, 'accept');
+                        }}
                     >
                         <Text style={styles.actionButtonText}>Accept</Text>
                     </TouchableOpacity>
@@ -122,7 +143,10 @@ const DashboardScreen = ({ navigation }) => {
                 {item.status === 'ACCEPTED' && (
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => handleOrderAction(item._id, 'prepare')}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            handleOrderAction(item._id, 'prepare');
+                        }}
                     >
                         <Text style={styles.actionButtonText}>Start Preparing</Text>
                     </TouchableOpacity>
@@ -130,7 +154,10 @@ const DashboardScreen = ({ navigation }) => {
                 {item.status === 'PREPARING' && (
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => handleOrderAction(item._id, 'ready')}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            handleOrderAction(item._id, 'ready');
+                        }}
                     >
                         <Text style={styles.actionButtonText}>Mark Ready</Text>
                     </TouchableOpacity>
@@ -138,18 +165,25 @@ const DashboardScreen = ({ navigation }) => {
                 {item.status === 'READY' && (
                     <TouchableOpacity
                         style={[styles.actionButton, styles.scanButton]}
-                        onPress={() => navigation.navigate('QRScanner', { orderId: item._id })}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            navigation.navigate('QRScanner', { orderId: item._id });
+                        }}
                     >
                         <Ionicons name="qr-code-outline" size={16} color={colors.white} />
                         <Text style={styles.actionButtonText}> Scan Pickup</Text>
                     </TouchableOpacity>
                 )}
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderCompletedOrder = ({ item }) => (
-        <View style={styles.orderCard}>
+        <TouchableOpacity
+            style={styles.orderCard}
+            onPress={() => setSelectedOrder(item)}
+            activeOpacity={0.7}
+        >
             <View style={styles.orderHeader}>
                 <Text style={styles.orderId}>#{item._id.slice(-6)}</Text>
                 <View style={[styles.statusBadge, styles.completedBadge]}>
@@ -162,7 +196,7 @@ const DashboardScreen = ({ navigation }) => {
             <Text style={styles.orderDate}>
                 {new Date(item.updatedAt).toLocaleDateString()} at {new Date(item.updatedAt).toLocaleTimeString()}
             </Text>
-        </View>
+        </TouchableOpacity>
     );
 
     const getStatusStyle = (status) => {
@@ -283,6 +317,99 @@ const DashboardScreen = ({ navigation }) => {
                     }
                 />
             </View>
+
+            {/* Order Details Modal */}
+            <Modal
+                visible={selectedOrder !== null}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setSelectedOrder(null)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setSelectedOrder(null)}
+                >
+                    <TouchableOpacity
+                        style={styles.modalContent}
+                        activeOpacity={1}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {selectedOrder && (
+                                <>
+                                    <View style={styles.modalHeader}>
+                                        <Text style={styles.modalTitle}>Order Details</Text>
+                                        <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+                                            <Ionicons name="close" size={28} color={colors.text} />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={styles.modalSection}>
+                                        <Text style={styles.modalLabel}>Order ID</Text>
+                                        <Text style={styles.modalValue}>#{selectedOrder._id.slice(-6)}</Text>
+                                    </View>
+
+                                    <View style={styles.modalSection}>
+                                        <Text style={styles.modalLabel}>Status</Text>
+                                        <View style={[styles.statusBadge, getStatusStyle(selectedOrder.status)]}>
+                                            <Text style={styles.statusText}>{selectedOrder.status}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.modalSection}>
+                                        <Text style={styles.modalLabel}>Customer</Text>
+                                        <Text style={styles.modalValue}>{selectedOrder.userId.name}</Text>
+                                        <Text style={styles.modalSubValue}>{selectedOrder.userId.email}</Text>
+                                    </View>
+
+                                    <View style={styles.modalSection}>
+                                        <Text style={styles.modalLabel}>Order Time</Text>
+                                        <Text style={styles.modalValue}>
+                                            {new Date(selectedOrder.createdAt).toLocaleDateString()} at{' '}
+                                            {new Date(selectedOrder.createdAt).toLocaleTimeString()}
+                                        </Text>
+                                    </View>
+
+                                    {selectedOrder.status === 'COMPLETED' && (
+                                        <View style={styles.modalSection}>
+                                            <Text style={styles.modalLabel}>Completed At</Text>
+                                            <Text style={styles.modalValue}>
+                                                {new Date(selectedOrder.updatedAt).toLocaleDateString()} at{' '}
+                                                {new Date(selectedOrder.updatedAt).toLocaleTimeString()}
+                                            </Text>
+                                        </View>
+                                    )}
+
+                                    <View style={styles.modalSection}>
+                                        <Text style={styles.modalLabel}>Items</Text>
+                                        {selectedOrder.items.map((item, index) => (
+                                            <View key={index} style={styles.modalItemRow}>
+                                                <Text style={styles.modalItemName}>
+                                                    {item.name} x{item.quantity}
+                                                </Text>
+                                                <Text style={styles.modalItemPrice}>₹{item.price * item.quantity}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                    {selectedOrder.specialInstructions && (
+                                        <View style={styles.modalSection}>
+                                            <Text style={styles.modalLabel}>Special Instructions</Text>
+                                            <Text style={styles.modalValue}>{selectedOrder.specialInstructions}</Text>
+                                        </View>
+                                    )}
+
+                                    <View style={styles.modalTotalSection}>
+                                        <Text style={styles.modalTotalLabel}>Total Amount</Text>
+                                        <Text style={styles.modalTotalValue}>₹{selectedOrder.totalAmount}</Text>
+                                    </View>
+                                </>
+                            )}
+                        </ScrollView>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
@@ -492,6 +619,115 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: colors.textSecondary,
         marginTop: 8,
+    },
+    itemsContainer: {
+        marginVertical: 8,
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+    },
+    itemsLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.textSecondary,
+        marginBottom: 4,
+    },
+    itemText: {
+        fontSize: 13,
+        color: colors.text,
+        marginLeft: 8,
+        marginTop: 2,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: colors.white,
+        borderRadius: 16,
+        padding: 20,
+        width: '100%',
+        maxHeight: '80%',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+    modalSection: {
+        marginBottom: 16,
+    },
+    modalLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.textSecondary,
+        marginBottom: 6,
+        textTransform: 'uppercase',
+    },
+    modalValue: {
+        fontSize: 16,
+        color: colors.text,
+        fontWeight: '500',
+    },
+    modalSubValue: {
+        fontSize: 14,
+        color: colors.textSecondary,
+        marginTop: 4,
+    },
+    modalItemRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    modalItemName: {
+        fontSize: 15,
+        color: colors.text,
+        flex: 1,
+    },
+    modalItemPrice: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.primary,
+    },
+    modalTotalSection: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 16,
+        paddingTop: 16,
+        borderTopWidth: 2,
+        borderTopColor: colors.border,
+    },
+    modalTotalLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+    modalTotalValue: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.primary,
     },
 });
 
