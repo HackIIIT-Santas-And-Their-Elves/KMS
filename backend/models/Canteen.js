@@ -18,7 +18,7 @@ const canteenSchema = new mongoose.Schema({
     },
     isOnlineOrdersEnabled: {
         type: Boolean,
-        default: true
+        default: false
     },
     maxBulkSize: {
         type: Number,

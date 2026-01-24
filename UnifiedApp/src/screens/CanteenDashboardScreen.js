@@ -55,6 +55,13 @@ const DashboardScreen = ({ navigation }) => {
     const handleToggleOpen = async () => {
         try {
             console.log('🔄 Toggling canteen open status:', user.canteenId);
+
+            // If canteen is currently open (about to close), also turn off online orders
+            if (canteen.isOpen && canteen.isOnlineOrdersEnabled) {
+                console.log('🔄 Canteen closing - also disabling online orders');
+                await canteenAPI.toggleOnlineOrders(user.canteenId);
+            }
+
             await canteenAPI.toggleOpen(user.canteenId);
             fetchData();
         } catch (error) {
@@ -65,6 +72,12 @@ const DashboardScreen = ({ navigation }) => {
     };
 
     const handleToggleOnlineOrders = async () => {
+        // Prevent enabling online orders if canteen is closed
+        if (!canteen.isOpen && !canteen.isOnlineOrdersEnabled) {
+            Alert.alert('Cannot Enable', 'Please open the canteen first before enabling online orders.');
+            return;
+        }
+
         try {
             console.log('🔄 Toggling online orders:', user.canteenId);
             await canteenAPI.toggleOnlineOrders(user.canteenId);
@@ -245,12 +258,18 @@ const DashboardScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.toggleRow}>
-                        <Text style={styles.toggleLabel}>Online Orders</Text>
+                        <View>
+                            <Text style={styles.toggleLabel}>Online Orders</Text>
+                            {!canteen.isOpen && (
+                                <Text style={styles.toggleHint}>Open canteen first</Text>
+                            )}
+                        </View>
                         <Switch
                             value={canteen.isOnlineOrdersEnabled}
                             onValueChange={handleToggleOnlineOrders}
                             trackColor={{ false: colors.border, true: colors.success }}
                             thumbColor={colors.white}
+                            disabled={!canteen.isOpen && !canteen.isOnlineOrdersEnabled}
                         />
                     </View>
                 </View>
@@ -461,6 +480,12 @@ const styles = StyleSheet.create({
     toggleLabel: {
         fontSize: 16,
         color: colors.text,
+    },
+    toggleHint: {
+        fontSize: 12,
+        color: colors.textSecondary,
+        fontStyle: 'italic',
+        marginTop: 2,
     },
     menuButton: {
         marginTop: 8,
