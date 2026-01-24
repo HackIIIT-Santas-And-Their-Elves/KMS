@@ -146,14 +146,14 @@ const RegisterScreen = ({ navigation }) => {
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.linkButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={styles.linkText}>
-                            Already have an account? <Text style={styles.linkTextBold}>Login</Text>
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>
+                            Already have an account?{' '}
+                            <TouchableOpacity onPress={() => navigation.goBack()}>
+                                <Text style={styles.linkText}>Login</Text>
+                            </TouchableOpacity>
                         </Text>
-                    </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -163,58 +163,75 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.white,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         flexGrow: 1,
-        padding: 20,
+        justifyContent: 'center',
+        padding: 24,
     },
     form: {
-        width: '100%',
+        backgroundColor: colors.surface,
+        borderRadius: 18,
+        padding: 24,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.10,
+        shadowRadius: 16,
+        elevation: 6,
     },
     inputContainer: {
-        marginBottom: 20,
+        marginBottom: 18,
     },
     label: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: colors.text,
-        marginBottom: 8,
+        fontSize: 15,
+        fontWeight: '700',
+        color: colors.secondary,
+        marginBottom: 6,
+        marginLeft: 2,
     },
     input: {
+        backgroundColor: colors.surface,
+        borderRadius: 10,
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: 8,
-        padding: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
         fontSize: 16,
-        backgroundColor: colors.white,
+        color: colors.text,
+        marginBottom: 2,
     },
     button: {
         backgroundColor: colors.primary,
-        padding: 16,
-        borderRadius: 8,
+        borderRadius: 12,
+        paddingVertical: 16,
         alignItems: 'center',
-        marginTop: 10,
-    },
-    buttonDisabled: {
-        opacity: 0.6,
+        marginTop: 18,
+        shadowColor: colors.action,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.18,
+        shadowRadius: 8,
+        elevation: 4,
     },
     buttonText: {
         color: colors.white,
         fontSize: 18,
         fontWeight: 'bold',
+        letterSpacing: 0.5,
     },
-    linkButton: {
-        marginTop: 20,
-        alignItems: 'center',
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 24,
+    },
+    footerText: {
+        color: colors.textSecondary,
+        fontSize: 15,
     },
     linkText: {
-        fontSize: 14,
-        color: colors.textSecondary,
-    },
-    linkTextBold: {
         color: colors.primary,
         fontWeight: 'bold',
+        fontSize: 15,
     },
     roleContainer: {
         flexDirection: 'row',
