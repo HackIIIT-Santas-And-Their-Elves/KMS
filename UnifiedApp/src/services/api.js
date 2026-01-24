@@ -17,7 +17,7 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
         console.log('🌐 API Request:', {
             method: config.method.toUpperCase(),
             url: config.url,
@@ -95,6 +95,7 @@ export const orderAPI = {
         const params = status ? `?status=${status}` : '';
         return api.get(`/orders/canteen/${canteenId}${params}`);
     },
+    getCompletedByCanteen: (canteenId) => api.get(`/orders/canteen/${canteenId}/completed`),
     getById: (id) => api.get(`/orders/${id}`),
     cancel: (id) => api.post(`/orders/${id}/cancel`),
     accept: (id) => api.post(`/orders/${id}/accept`),

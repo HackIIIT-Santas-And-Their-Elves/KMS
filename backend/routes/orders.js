@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const Canteen = require('../models/Canteen');
@@ -155,6 +156,93 @@ router.get('/canteen/:canteenId', protect, authorize('CANTEEN', 'ADMIN'), async 
             success: true,
             count: orders.length,
             data: orders
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// @route   GET /api/orders/canteen/:canteenId/completed
+// @desc    Get completed orders for a canteen with earnings statistics
+// @access  Private (Canteen owner or Admin)
+router.get('/canteen/:canteenId/completed', protect, authorize('CANTEEN', 'ADMIN'), async (req, res) => {
+    try {
+        // Check if user is canteen owner
+        if (req.user.role === 'CANTEEN' && req.user.canteenId.toString() !== req.params.canteenId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to view orders for this canteen'
+            });
+        }
+
+        // Fetch all completed orders
+        const completedOrders = await Order.find({
+            canteenId: req.params.canteenId,
+            status: 'COMPLETED'
+        })
+            .populate('userId', 'name email')
+            .sort('-createdAt');
+
+        // Calculate earnings for today
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const dailyEarnings = await Order.aggregate([
+            {
+                $match: {
+                    canteenId: new mongoose.Types.ObjectId(req.params.canteenId),
+                    status: 'COMPLETED',
+                    updatedAt: { $gte: startOfDay, $lte: endOfDay }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$totalAmount' }
+                }
+            }
+        ]);
+
+        // Calculate earnings for current month
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const endOfMonth = new Date();
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+        endOfMonth.setDate(0);
+        endOfMonth.setHours(23, 59, 59, 999);
+
+        const monthlyEarnings = await Order.aggregate([
+            {
+                $match: {
+                    canteenId: new mongoose.Types.ObjectId(req.params.canteenId),
+                    status: 'COMPLETED',
+                    updatedAt: { $gte: startOfMonth, $lte: endOfMonth }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$totalAmount' }
+                }
+            }
+        ]);
+
+        res.json({
+            success: true,
+            count: completedOrders.length,
+            data: completedOrders,
+            earnings: {
+                daily: dailyEarnings.length > 0 ? dailyEarnings[0].total : 0,
+                monthly: monthlyEarnings.length > 0 ? monthlyEarnings[0].total : 0
+            }
         });
     } catch (error) {
         res.status(500).json({
