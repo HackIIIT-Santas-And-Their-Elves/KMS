@@ -7,6 +7,7 @@ import {
     StyleSheet,
     RefreshControl,
     ActivityIndicator,
+    Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { canteenAPI } from '../services/api';
@@ -16,6 +17,7 @@ const CanteenListScreen = ({ navigation }) => {
     const [canteens, setCanteens] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [showOpenOnly, setShowOpenOnly] = useState(false);
 
     useEffect(() => {
         fetchCanteens();
@@ -38,9 +40,33 @@ const CanteenListScreen = ({ navigation }) => {
         fetchCanteens();
     };
 
+    // Get status priority: 1 = Open & accepting, 2 = Open & not accepting, 3 = Closed
+    const getStatusPriority = (canteen) => {
+        if (!canteen.isOpen) return 3;
+        if (canteen.isOnlineOrdersEnabled) return 1;
+        return 2;
+    };
+
+    // Sort and filter canteens
+    const getSortedCanteens = () => {
+        let filtered = canteens;
+
+        // Filter if showOpenOnly is enabled
+        if (showOpenOnly) {
+            filtered = canteens.filter(c => c.isOpen);
+        }
+
+        // Sort by status priority, then alphabetically
+        return [...filtered].sort((a, b) => {
+            const priorityDiff = getStatusPriority(a) - getStatusPriority(b);
+            if (priorityDiff !== 0) return priorityDiff;
+            return a.name.localeCompare(b.name);
+        });
+    };
+
     const renderCanteen = ({ item }) => (
         <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, !item.isOpen && styles.cardClosed]}
             onPress={() => navigation.navigate('Menu', { canteen: item })}
             disabled={!item.isOpen || !item.isOnlineOrdersEnabled}
         >
@@ -89,8 +115,17 @@ const CanteenListScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.filterContainer}>
+                <Text style={styles.filterLabel}>Show open only</Text>
+                <Switch
+                    value={showOpenOnly}
+                    onValueChange={setShowOpenOnly}
+                    trackColor={{ false: colors.border, true: colors.lightBlue }}
+                    thumbColor={showOpenOnly ? colors.primary : colors.textSecondary}
+                />
+            </View>
             <FlatList
-                data={canteens}
+                data={getSortedCanteens()}
                 renderItem={renderCanteen}
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.listContainer}
@@ -100,7 +135,9 @@ const CanteenListScreen = ({ navigation }) => {
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
-                        <Text style={styles.emptyText}>No canteens available</Text>
+                        <Text style={styles.emptyText}>
+                            {showOpenOnly ? 'No open canteens available' : 'No canteens available'}
+                        </Text>
                     </View>
                 }
             />
@@ -198,6 +235,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.textSecondary,
         marginTop: 16,
+    },
+    filterContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: colors.white,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    filterLabel: {
+        fontSize: 16,
+        color: colors.text,
+        fontWeight: '500',
+    },
+    cardClosed: {
+        opacity: 0.5,
     },
 });
 
