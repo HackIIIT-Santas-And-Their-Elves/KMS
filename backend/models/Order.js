@@ -45,6 +45,11 @@ const orderSchema = new mongoose.Schema({
         enum: ['CREATED', 'PAID', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED', 'FAILED'],
         default: 'CREATED'
     },
+    cancelledBy: {
+        type: String,
+        enum: ['CANTEEN', 'ADMIN'],
+        default: null
+    },
     pickupCode: {
         type: String,
         unique: true,

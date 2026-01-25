@@ -6,6 +6,7 @@ import {
     ActivityIndicator,
     ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { orderAPI } from '../services/api';
 import colors from '../constants/colors';
@@ -48,7 +49,7 @@ const OrderDetailsScreen = ({ route }) => {
 
     return (
         <ScrollView style={styles.container}>
-            {order.pickupCode && order.status !== 'COMPLETED' && (
+            {order.pickupCode && order.status === 'READY' && (
                 <View style={styles.qrSection}>
                     <Text style={styles.qrTitle}>Pickup Code</Text>
                     <View style={styles.qrContainer}>
@@ -73,8 +74,21 @@ const OrderDetailsScreen = ({ route }) => {
                 </View>
                 <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Status</Text>
-                    <Text style={[styles.infoValue, styles.statusValue]}>{order.status}</Text>
+                    <Text style={[styles.infoValue, styles.statusValue]}>
+                        {order.status === 'CANCELLED' && order.cancelledBy === 'CANTEEN'
+                            ? 'CANCELLED BY CANTEEN'
+                            : order.status}
+                    </Text>
                 </View>
+
+                {order.status === 'CANCELLED' && order.cancelledBy === 'CANTEEN' && (
+                    <View style={styles.refundContainer}>
+                        <Ionicons name="information-circle" size={24} color={colors.info} />
+                        <Text style={styles.refundText}>
+                            Refund initiated. Amount will be reflected in 2-3 working days.
+                        </Text>
+                    </View>
+                )}
                 <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Canteen</Text>
                     <Text style={styles.infoValue}>{order.canteenId.name}</Text>
@@ -276,6 +290,22 @@ const styles = StyleSheet.create({
     errorText: {
         fontSize: 16,
         color: colors.error,
+    },
+    refundContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E3F2FD',
+        padding: 12,
+        borderRadius: 8,
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: '#90CAF9',
+    },
+    refundText: {
+        marginLeft: 10,
+        color: colors.info,
+        fontSize: 14,
+        flex: 1,
     },
 });
 

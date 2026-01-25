@@ -112,6 +112,42 @@ const DashboardScreen = ({ navigation }) => {
         );
     };
 
+    const handleCancelOrder = async () => {
+        if (!selectedOrder) return;
+
+        Alert.alert(
+            'Cancel Order',
+            'Are you sure you want to cancel this order? This action cannot be undone.',
+            [
+                { text: 'No', style: 'cancel' },
+                {
+                    text: 'Yes, Cancel',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await orderAPI.cancel(selectedOrder._id);
+                            Alert.alert('Success', 'Order cancelled successfully');
+
+                            // Update the local state
+                            setSelectedOrder(prev => ({ ...prev, status: 'CANCELLED', cancelledBy: 'CANTEEN' }));
+                            setOnlineOrders(prev => prev.map(o =>
+                                o._id === selectedOrder._id
+                                    ? { ...o, status: 'CANCELLED', cancelledBy: 'CANTEEN' }
+                                    : o
+                            ));
+
+                            // Refresh stats/lists if needed
+                            fetchData();
+                        } catch (error) {
+                            console.error('Error cancelling order:', error);
+                            Alert.alert('Error', error.response?.data?.message || 'Failed to cancel order');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <ScrollView
             style={styles.container}
@@ -356,6 +392,16 @@ const DashboardScreen = ({ navigation }) => {
                                         <Text style={styles.totalLabel}>Total Amount</Text>
                                         <Text style={styles.totalValue}>₹{selectedOrder.totalAmount}</Text>
                                     </View>
+
+                                    {/* Cancel Button for Admin/Canteen */}
+                                    {!['COMPLETED', 'CANCELLED', 'FAILED'].includes(selectedOrder.status) && (
+                                        <TouchableOpacity
+                                            style={styles.cancelButton}
+                                            onPress={handleCancelOrder}
+                                        >
+                                            <Text style={styles.cancelButtonText}>Cancel Order</Text>
+                                        </TouchableOpacity>
+                                    )}
                                 </>
                             )}
                         </ScrollView>
@@ -674,6 +720,20 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: colors.primary,
+    },
+    cancelButton: {
+        backgroundColor: '#FEE2E2',
+        paddingVertical: 14,
+        borderRadius: 8,
+        marginTop: 24,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#EF4444',
+    },
+    cancelButtonText: {
+        color: '#EF4444',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

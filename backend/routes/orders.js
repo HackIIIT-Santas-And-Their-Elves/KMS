@@ -224,10 +224,10 @@ router.get('/canteen/:canteenId/completed', protect, authorize('CANTEEN', 'ADMIN
             });
         }
 
-        // Fetch all completed orders
+        // Fetch all completed and cancelled orders
         const completedOrders = await Order.find({
             canteenId: req.params.canteenId,
-            status: 'COMPLETED'
+            status: { $in: ['COMPLETED', 'CANCELLED'] }
         })
             .populate('userId', 'name email')
             .sort('-createdAt');
@@ -552,23 +552,48 @@ router.post('/:id/cancel', protect, async (req, res) => {
             });
         }
 
-        // Students can only cancel their own orders
-        if (req.user.role === 'STUDENT' && order.userId.toString() !== req.user._id.toString()) {
+        // Determine who is cancelling
+        let cancelledBy = 'USER';
+        if (req.user.role === 'CANTEEN') {
+            cancelledBy = 'CANTEEN';
+            // Check if user is canteen owner of this order
+            if (order.canteenId.toString() !== req.user.canteenId.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Not authorized to cancel this order'
+                });
+            }
+        } else if (req.user.role === 'ADMIN') {
+            cancelledBy = 'ADMIN';
+        } else {
+            // Students are not allowed to cancel orders
             return res.status(403).json({
                 success: false,
-                message: 'Not authorized to cancel this order'
+                message: 'Students cannot cancel orders. Please contact the canteen.'
             });
         }
 
-        // Can't cancel orders that are already preparing or ready
-        if (['PREPARING', 'READY', 'COMPLETED'].includes(order.status)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot cancel order at this stage'
-            });
+        // Logic for cancellation eligibility
+        if (cancelledBy === 'USER') {
+            // This block should ideally not be reached if students are blocked, but kept for safeguards/other roles
+            if (['PREPARING', 'READY', 'COMPLETED', 'CANCELLED'].includes(order.status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot cancel order at this stage'
+                });
+            }
+        } else {
+            // Canteens/Admins can cancel anytime before completion (except already cancelled)
+            if (['COMPLETED', 'CANCELLED'].includes(order.status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot cancel order that is already completed or cancelled'
+                });
+            }
         }
 
         order.status = 'CANCELLED';
+        order.cancelledBy = cancelledBy;
         await order.save();
 
         res.json({

@@ -71,7 +71,11 @@ const OrderHistoryScreen = ({ navigation }) => {
                     </Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                    <Text style={styles.statusText}>{item.status}</Text>
+                    <Text style={styles.statusText}>
+                        {item.status === 'CANCELLED' && item.cancelledBy === 'CANTEEN'
+                            ? 'CANCELLED (CANTEEN)'
+                            : item.status}
+                    </Text>
                 </View>
             </View>
 

@@ -113,6 +113,42 @@ const DashboardScreen = ({ navigation }) => {
         );
     };
 
+    const handleCancelOrder = async () => {
+        if (!selectedOrder) return;
+
+        Alert.alert(
+            'Cancel Order',
+            'Are you sure you want to cancel this order? This action cannot be undone.',
+            [
+                { text: 'No', style: 'cancel' },
+                {
+                    text: 'Yes, Cancel',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await orderAPI.cancel(selectedOrder._id);
+                            Alert.alert('Success', 'Order cancelled successfully');
+
+                            // Update the local state
+                            setSelectedOrder(prev => ({ ...prev, status: 'CANCELLED', cancelledBy: 'CANTEEN' }));
+                            setOrders(prev => prev.map(o =>
+                                o._id === selectedOrder._id
+                                    ? { ...o, status: 'CANCELLED', cancelledBy: 'CANTEEN' }
+                                    : o
+                            ));
+
+                            // Refresh stats/lists
+                            fetchData();
+                        } catch (error) {
+                            console.error('Error cancelling order:', error);
+                            Alert.alert('Error', error.response?.data?.message || 'Failed to cancel order');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const renderOrder = ({ item }) => (
         <TouchableOpacity
             style={styles.orderCard}
@@ -203,8 +239,8 @@ const DashboardScreen = ({ navigation }) => {
         >
             <View style={styles.orderHeader}>
                 <Text style={styles.orderId}>#{item._id.slice(-6)}</Text>
-                <View style={[styles.statusBadge, styles.completedBadge]}>
-                    <Text style={styles.statusText}>COMPLETED</Text>
+                <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
+                    <Text style={styles.statusText}>{item.status}</Text>
                 </View>
             </View>
 
@@ -222,6 +258,8 @@ const DashboardScreen = ({ navigation }) => {
             ACCEPTED: { backgroundColor: '#4CAF50' },
             PREPARING: { backgroundColor: '#FF9800' },
             READY: { backgroundColor: '#9C27B0' },
+            COMPLETED: { backgroundColor: '#4CAF50' },
+            CANCELLED: { backgroundColor: '#EF4444' },
         };
         return colors[status] || { backgroundColor: '#757575' };
     };
@@ -483,6 +521,16 @@ const DashboardScreen = ({ navigation }) => {
                                         <Text style={styles.modalTotalLabel}>Total Amount</Text>
                                         <Text style={styles.modalTotalValue}>₹{selectedOrder.totalAmount}</Text>
                                     </View>
+
+                                    {/* Cancel Button */}
+                                    {!['COMPLETED', 'CANCELLED', 'FAILED'].includes(selectedOrder.status) && (
+                                        <TouchableOpacity
+                                            style={styles.cancelButton}
+                                            onPress={handleCancelOrder}
+                                        >
+                                            <Text style={styles.cancelButtonText}>Cancel Order</Text>
+                                        </TouchableOpacity>
+                                    )}
                                 </>
                             )}
                         </ScrollView>
@@ -798,10 +846,24 @@ const styles = StyleSheet.create({
         borderColor: colors.border,
     },
     itemsLabel: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 13,
         color: colors.textSecondary,
-        marginBottom: 4,
+        marginBottom: 8,
+        fontStyle: 'italic',
+    },
+    cancelButton: {
+        backgroundColor: '#FEE2E2',
+        paddingVertical: 14,
+        borderRadius: 8,
+        marginTop: 24,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#EF4444',
+    },
+    cancelButtonText: {
+        color: '#EF4444',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     itemTextRow: {
         flexDirection: 'row',
