@@ -1,6 +1,7 @@
 # Khana Management System (KMS)
 
-## APK Download Link
+## APK Download
+![alt text](download_qr.png)
 https://expo.dev/accounts/rudra20.6/projects/kms-unified/builds/454e8af2-d3a7-4e8f-aa02-8fcb67b4676a
 
 ### Problem Statement
