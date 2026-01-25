@@ -1,7 +1,3 @@
 node_modules/
-<<<<<<< Updated upstream
-src/config/api.js
-=======
 src/config/api.js
 ./.expo/
->>>>>>> Stashed changes
