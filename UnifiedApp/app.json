@@ -7,7 +7,7 @@
     "icon": "./src/assets/KMSapp2_2.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./src/assets/KMSapp2_2.png",
+      "image": "./src/assets/KMSapp2.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -26,15 +26,28 @@
         "CAMERA",
         "CAMERA_ROLL"
       ],
-      "package": "id.to"
+      "package": "each.letter"
     },
     "web": {
-      "favicon": "./src/assets/KMSapp2_2.png"
+      "favicon": "./src/assets/KMSapp2.png"
     },
     "extra": {
       "eas": {
         "projectId": "fcf69cfb-7444-4cb4-87c6-ce4b31450bfb"
       }
-    }
+    },
+    "owner": "rudra20.6",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
+        }
+      ]
+    ]
   }
 }
