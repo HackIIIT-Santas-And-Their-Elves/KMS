@@ -77,6 +77,7 @@ export const canteenAPI = {
     update: (id, data) => api.put(`/canteens/${id}`, data),
     delete: (id) => api.delete(`/canteens/${id}`),
     toggleOpen: (id) => api.post(`/canteens/${id}/toggle-open`),
+    toggleStatus: (id, secretKey) => api.post(`/canteens/${id}/toggle-status`, { secretKey }),
     toggleOnlineOrders: (id) => api.post(`/canteens/${id}/toggle-online-orders`),
     getQueueStatus: (id) => api.get(`/canteens/${id}/queue`),
     getAllQueueStatus: () => api.get('/canteens/queue-status/all'),
