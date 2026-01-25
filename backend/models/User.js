@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
         },
         default: null
     },
+    pushToken: {
+        type: String,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

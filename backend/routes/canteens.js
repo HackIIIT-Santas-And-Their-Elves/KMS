@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Canteen = require('../models/Canteen');
+const Order = require('../models/Order');
 const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/canteens
@@ -19,6 +20,124 @@ router.get('/', async (req, res) => {
             success: false,
             message: error.message
         });
+    }
+});
+
+// @route   GET /api/canteens/queue-status/all
+// @desc    Get live queue/demand info for all canteens
+// @access  Public
+router.get('/queue-status/all', async (req, res) => {
+    try {
+        const canteens = await Canteen.find().select('_id name isOpen');
+        const activeStatuses = ['PAID', 'ACCEPTED', 'PREPARING'];
+
+        const results = await Promise.all(
+            canteens.map(async (c) => {
+                if (!c.isOpen) {
+                    return {
+                        canteenId: c._id,
+                        name: c.name,
+                        queuedOrders: 0,
+                        estimatedWaitTime: 0,
+                        recentOrders: 0,
+                        demandLevel: 'CLOSED'
+                    };
+                }
+
+                const [activeOrders, recentOrdersAgg] = await Promise.all([
+                    Order.find({ canteenId: c._id, status: { $in: activeStatuses } })
+                        .select('isBulkOrder')
+                        .lean(),
+                    Order.aggregate([
+                        { $match: { canteenId: c._id, createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } } },
+                        { $count: 'count' }
+                    ])
+                ]);
+
+                const recentOrders = recentOrdersAgg.length > 0 ? recentOrdersAgg[0].count : 0;
+                const weightedQueueUnits = activeOrders.reduce((acc, o) => acc + (o.isBulkOrder ? 2 : 1), 0);
+                const estimatedWaitTime = weightedQueueUnits * 3; // 3 min per unit
+
+                let demandLevel = 'LOW';
+                if (activeOrders.length >= 15) demandLevel = 'HIGH';
+                else if (activeOrders.length >= 8) demandLevel = 'MEDIUM';
+
+                return {
+                    canteenId: c._id,
+                    name: c.name,
+                    queuedOrders: activeOrders.length,
+                    estimatedWaitTime,
+                    recentOrders,
+                    demandLevel
+                };
+            })
+        );
+
+        res.json({ success: true, count: results.length, data: results });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   GET /api/canteens/:id/queue
+// @desc    Get live queue and demand info for a canteen
+// @access  Public
+router.get('/:id/queue', async (req, res) => {
+    try {
+        const canteen = await Canteen.findById(req.params.id);
+        if (!canteen) {
+            return res.status(404).json({ success: false, message: 'Canteen not found' });
+        }
+
+        if (!canteen.isOpen) {
+            return res.json({
+                success: true,
+                data: {
+                    canteenId: canteen._id,
+                    queuedOrders: 0,
+                    estimatedWaitTime: 0,
+                    recentOrders: 0,
+                    demandLevel: 'CLOSED'
+                }
+            });
+        }
+
+        // Count active queue orders (paid/accepted/preparing)
+        const activeStatuses = ['PAID', 'ACCEPTED', 'PREPARING'];
+        const [activeOrders, recentOrdersAgg] = await Promise.all([
+            Order.find({ canteenId: canteen._id, status: { $in: activeStatuses } })
+                .select('isBulkOrder')
+                .lean(),
+            Order.aggregate([
+                { $match: { canteenId: canteen._id, createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } } },
+                { $count: 'count' }
+            ])
+        ]);
+
+        const recentOrders = recentOrdersAgg.length > 0 ? recentOrdersAgg[0].count : 0;
+        const weightedQueueUnits = activeOrders.reduce((acc, o) => acc + (o.isBulkOrder ? 2 : 1), 0);
+
+        // Simple wait estimation: 3 min per unit
+        const perUnitMinutes = 3;
+        const estimatedWaitTime = weightedQueueUnits * perUnitMinutes;
+
+        // Demand level from recent orders in last 30 minutes
+        let demandLevel = 'LOW';
+        if (recentOrders >= 15) demandLevel = 'HIGH';
+        else if (recentOrders >= 8) demandLevel = 'MEDIUM';
+
+        res.json({
+            success: true,
+            data: {
+                canteenId: canteen._id,
+                queuedOrders: activeOrders.length,
+                estimatedWaitTime,
+                recentOrders,
+                demandLevel
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

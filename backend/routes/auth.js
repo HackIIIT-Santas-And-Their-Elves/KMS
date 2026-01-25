@@ -3,7 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Canteen = require('../models/Canteen');
-const { generateToken } = require('../middleware/auth');
+const { generateToken, protect } = require('../middleware/auth');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -243,6 +243,33 @@ router.put('/password', require('../middleware/auth').protect, [
             success: false,
             message: error.message
         });
+    }
+});
+
+// @route   PUT /api/auth/push-token
+// @desc    Update push notification token
+// @access  Private
+router.put('/push-token', protect, async (req, res) => {
+    try {
+        const { pushToken } = req.body;
+        
+        console.log(`📲 Received push token update for user ${req.user.id}:`, pushToken);
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            console.error('❌ User not found for push token update');
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        user.pushToken = pushToken;
+        await user.save();
+        
+        console.log(`✅ Push token updated successfully for user ${user.email} (${user.role})`);
+
+        res.json({ success: true, message: 'Push token updated' });
+    } catch (error) {
+        console.error('❌ Error updating push token:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

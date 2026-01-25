@@ -127,6 +127,7 @@ const CanteenStack = () => (
         <Stack.Screen name="Dashboard" component={CanteenDashboardScreen} options={{ title: 'Canteen Dashboard' }} />
         <Stack.Screen name="MenuManagement" component={MenuManagementScreen} options={{ title: 'Manage Menu' }} />
         <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ title: 'Scan Pickup Code' }} />
+        <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} options={{ title: 'Order Details' }} />
     </Stack.Navigator>
 );
 
