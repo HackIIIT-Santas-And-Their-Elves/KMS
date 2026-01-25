@@ -156,6 +156,25 @@ npm install
 npx expo start
 ```
 
+3) ESP32 Hardware (Canteen Toggle Switch)
+
+The `ESP/` folder contains Arduino sketches for the physical canteen toggle switch:
+
+- `wifipluslora.ino` — Main toggle device with WiFi + LoRa fallback
+- `wifibridge.ino` — LoRa receiver that bridges to WiFi
+
+**Requirements:**
+- ESP32 development board
+- Arduino IDE with ESP32 board support
+- Libraries: `WiFi`, `HTTPClient`, `LoRa`, `Adafruit_SSD1306`, `Adafruit_NeoPixel`
+
+**Setup:**
+1. Open the `.ino` file in Arduino IDE
+2. Update WiFi credentials (`WIFI_SSID`, `WIFI_PASSWORD`)  
+3. Update `API_URL` with your backend endpoint and canteen ID
+4. Select your ESP32 board and COM port
+5. Upload the sketch
+
 Notes
 - The mobile app reads the API base URL from [UnifiedApp/src/config/api.js](UnifiedApp/src/config/api.js).
 - Backend DB configuration is in [backend/config/db.js](backend/config/db.js).
@@ -189,3 +208,6 @@ All major decisions, logic, and final code were done by the team. AI tools were 
 ## Any previous work referred/ any open source project used as a base
 
 We did not use any open source project as a base. The solution was built from scratch.
+
+> Drive Link : https://drive.google.com/drive/folders/1xkKScU3ElyWf4HlDTCXzP9pwd5E8X6E8?usp=sharing
+> To put apk if it expires from above link + demo + photos
