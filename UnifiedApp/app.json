@@ -4,10 +4,10 @@
     "slug": "kms-unified",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/assets/KMSapp2_2.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./src/assets/KMSapp2.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,16 +19,35 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/KMSapp2_2.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
         "CAMERA",
         "CAMERA_ROLL"
-      ]
+      ],
+      "package": "each.letter"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./src/assets/KMSapp2.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "fcf69cfb-7444-4cb4-87c6-ce4b31450bfb"
+      }
+    },
+    "owner": "rudra20.6",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
+        }
+      ]
+    ]
   }
 }
