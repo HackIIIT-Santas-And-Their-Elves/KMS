@@ -438,17 +438,12 @@ const DashboardScreen = ({ navigation }) => {
                 animationType="fade"
                 onRequestClose={() => setSelectedOrder(null)}
             >
-                <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setSelectedOrder(null)}
-                >
-                    <TouchableOpacity
-                        style={styles.modalContent}
-                        activeOpacity={1}
-                        onPress={(e) => e.stopPropagation()}
-                    >
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <ScrollView 
+                            showsVerticalScrollIndicator={true}
+                            contentContainerStyle={styles.modalScrollContent}
+                        >
                             {selectedOrder && (
                                 <>
                                     <View style={styles.modalHeader}>
@@ -535,8 +530,8 @@ const DashboardScreen = ({ navigation }) => {
                                 </>
                             )}
                         </ScrollView>
-                    </TouchableOpacity>
-                </TouchableOpacity>
+                    </View>
+                </View>
             </Modal>
         </View>
     );
@@ -900,7 +895,6 @@ const styles = StyleSheet.create({
     modalContent: {
         backgroundColor: colors.white,
         borderRadius: 16,
-        padding: 20,
         width: '100%',
         maxHeight: '80%',
         elevation: 5,
@@ -908,6 +902,10 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
+        overflow: 'hidden',
+    },
+    modalScrollContent: {
+        padding: 20,
     },
     modalHeader: {
         flexDirection: 'row',

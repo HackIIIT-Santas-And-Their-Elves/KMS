@@ -4,7 +4,27 @@ const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const Canteen = require('../models/Canteen');
+const User = require('../models/User'); // Added User import
 const { protect, authorize } = require('../middleware/auth');
+const { sendPushNotification } = require('../utils/notifications');
+
+// Helper to send order status notification
+const sendOrderNotification = async (orderId, status, message) => {
+    try {
+        const order = await Order.findById(orderId).populate('userId');
+        if (!order || !order.userId || !order.userId.pushToken) return;
+
+        await sendPushNotification(
+            order.userId.pushToken,
+            `Order Update: ${status}`,
+            message,
+            { orderId: order._id, status: status }
+        );
+    } catch (err) {
+        console.error('Notification error:', err);
+    }
+};
+
 
 // @route   POST /api/orders
 // @desc    Create new order
@@ -92,9 +112,20 @@ router.post('/', protect, async (req, res) => {
             status: 'CREATED'
         });
 
+        // Compute simple queue status & ETA (not persisted)
+        const activeStatuses = ['PAID', 'ACCEPTED', 'PREPARING'];
+        const activeOrders = await Order.find({ canteenId, status: { $in: activeStatuses } }).select('isBulkOrder').lean();
+        const weightedQueueUnits = activeOrders.reduce((acc, o) => acc + (o.isBulkOrder ? 2 : 1), 0) + (isBulkOrder ? 2 : 1);
+        const estimatedWaitMinutes = weightedQueueUnits * 3; // 3 min per unit
+
         res.status(201).json({
             success: true,
-            data: order
+            data: order,
+            meta: {
+                queuePosition: activeOrders.length + 1,
+                estimatedWaitMinutes,
+                demandHint: weightedQueueUnits >= 15 ? 'HIGH' : weightedQueueUnits >= 8 ? 'MEDIUM' : 'LOW'
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -373,6 +404,9 @@ router.post('/:id/accept', protect, authorize('CANTEEN', 'ADMIN'), async (req, r
         order.status = 'ACCEPTED';
         await order.save();
 
+        // Send notification
+        sendOrderNotification(order._id, 'Accepted', 'Your order has been accepted and is in queue.');
+
         res.json({
             success: true,
             data: order
@@ -416,6 +450,9 @@ router.post('/:id/prepare', protect, authorize('CANTEEN', 'ADMIN'), async (req, 
 
         order.status = 'PREPARING';
         await order.save();
+
+        // Send notification
+        sendOrderNotification(order._id, 'Preparing', 'Your food is being prepared!');
 
         res.json({
             success: true,
@@ -465,6 +502,13 @@ router.post('/:id/ready', protect, authorize('CANTEEN', 'ADMIN'), async (req, re
 
         order.status = 'READY';
         await order.save();
+
+        // Send notification (include pickup code)
+        sendOrderNotification(
+            order._id, 
+            'Ready for Pickup', 
+            `Your order is ready! Pickup Code: ${order.pickupCode}`
+        );
 
         res.json({
             success: true,
@@ -525,6 +569,9 @@ router.post('/:id/complete', protect, authorize('CANTEEN', 'ADMIN'), async (req,
         order.status = 'COMPLETED';
         order.pickupCodeUsed = true;
         await order.save();
+
+        // Send notification
+        sendOrderNotification(order._id, 'Completed', 'Order picked up. Enjoy your meal!');
 
         res.json({
             success: true,
@@ -596,6 +643,9 @@ router.post('/:id/cancel', protect, async (req, res) => {
         order.cancelledBy = cancelledBy;
         await order.save();
 
+        // Send notification
+        sendOrderNotification(order._id, 'Cancelled', 'Your order was cancelled.');
+
         // Auto-refund demo logic
         if (order.status === 'CANCELLED' && cancelledBy === 'CANTEEN') {
             const orderId = order._id;
@@ -607,6 +657,9 @@ router.post('/:id/cancel', protect, async (req, res) => {
                         orderToRefund.status = 'REFUNDED';
                         await orderToRefund.save();
                         console.log(`Order ${orderId} auto-refunded.`);
+                        
+                        // Send notification
+                        sendOrderNotification(orderId, 'Refunded', 'Your order has been refunded.');
                     }
                 } catch (err) {
                     console.error(`Error auto-refunding order ${orderId}:`, err);

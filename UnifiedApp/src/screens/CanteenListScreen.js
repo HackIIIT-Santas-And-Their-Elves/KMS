@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -10,25 +10,42 @@ import {
     Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { canteenAPI } from '../services/api';
 import colors from '../constants/colors';
 
 const CanteenListScreen = ({ navigation }) => {
     const [canteens, setCanteens] = useState([]);
+    const [queueStats, setQueueStats] = useState({});
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showOpenOnly, setShowOpenOnly] = useState(false);
 
-    useEffect(() => {
-        fetchCanteens();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [])
+    );
 
-    const fetchCanteens = async () => {
+    const fetchData = async () => {
         try {
-            const response = await canteenAPI.getAll();
-            setCanteens(response.data.data);
+            const [canteensRes, queueRes] = await Promise.all([
+                canteenAPI.getAll(),
+                canteenAPI.getAllQueueStatus()
+            ]);
+            
+            setCanteens(canteensRes.data.data);
+            
+            if (queueRes.data.success) {
+                // Convert array to map for easier lookup
+                const statsMap = {};
+                queueRes.data.data.forEach(stat => {
+                    statsMap[stat.canteenId] = stat;
+                });
+                setQueueStats(statsMap);
+            }
         } catch (error) {
-            console.error('Error fetching canteens:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -37,7 +54,7 @@ const CanteenListScreen = ({ navigation }) => {
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchCanteens();
+        fetchData();
     };
 
     // Get status priority: 1 = Open & accepting, 2 = Open & not accepting, 3 = Closed
@@ -64,46 +81,80 @@ const CanteenListScreen = ({ navigation }) => {
         });
     };
 
-    const renderCanteen = ({ item }) => (
-        <TouchableOpacity
-            style={[styles.card, !item.isOpen && styles.cardClosed]}
-            onPress={() => navigation.navigate('Menu', { canteen: item })}
-            disabled={!item.isOpen || !item.isOnlineOrdersEnabled}
-        >
-            <View style={styles.cardHeader}>
-                <View style={styles.canteenInfo}>
-                    <Text style={styles.canteenName}>{item.name}</Text>
-                    <View style={styles.locationContainer}>
-                        <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-                        <Text style={styles.location}>{item.location}</Text>
+    const renderCanteen = ({ item }) => {
+        const stats = queueStats[item._id] || {};
+        const isOpen = item.isOpen;
+        const acceptOnline = item.isOnlineOrdersEnabled;
+        const showQueueInfo = isOpen && acceptOnline && (stats.queuedOrders > 0 || stats.demandLevel);
+        
+        let demandColor = colors.textSecondary;
+        if (stats.demandLevel === 'HIGH') demandColor = colors.error;
+        if (stats.demandLevel === 'MEDIUM') demandColor = colors.warning;
+        if (stats.demandLevel === 'LOW') demandColor = colors.success;
+
+        return (
+            <TouchableOpacity
+                style={[styles.card, !isOpen && styles.cardClosed]}
+                onPress={() => navigation.navigate('Menu', { canteen: item })}
+                disabled={!isOpen || (isOpen && !acceptOnline)}
+            >
+                <View style={styles.cardHeader}>
+                    <View style={styles.canteenInfo}>
+                        <Text style={styles.canteenName}>{item.name}</Text>
+                        <View style={styles.locationContainer}>
+                            <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
+                            <Text style={styles.location}>{item.location}</Text>
+                        </View>
+                    </View>
+                    <View style={[
+                        styles.statusBadge,
+                        { backgroundColor: isOpen ? colors.statusOpen : colors.statusClosed }
+                    ]}>
+                        <Text style={styles.statusText}>
+                            {isOpen ? 'OPEN' : 'CLOSED'}
+                        </Text>
                     </View>
                 </View>
-                <View style={[
-                    styles.statusBadge,
-                    { backgroundColor: item.isOpen ? colors.statusOpen : colors.statusClosed }
-                ]}>
-                    <Text style={styles.statusText}>
-                        {item.isOpen ? 'OPEN' : 'CLOSED'}
-                    </Text>
+
+                {item.description ? (
+                    <Text style={styles.description}>{item.description}</Text>
+                ) : null}
+
+                {/* Queue & Demand Info */}
+                {showQueueInfo && (
+                    <View style={styles.queueInfoContainer}>
+                        {stats.queuedOrders > 0 && (
+                            <View style={styles.queueChip}>
+                                <Ionicons name="time-outline" size={14} color={colors.primary} />
+                                <Text style={styles.queueText}>
+                                    {stats.queuedOrders} in queue (~{stats.estimatedWaitTime} min)
+                                </Text>
+                            </View>
+                        )}
+                        {stats.demandLevel && (
+                             <View style={[styles.demandChip, { backgroundColor: demandColor + '15' }]}>
+                                <Ionicons name="flame" size={14} color={demandColor} />
+                                <Text style={[styles.demandText, { color: demandColor }]}>
+                                    {stats.demandLevel} DEMAND
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {!acceptOnline && isOpen && (
+                    <View style={styles.warningContainer}>
+                        <Ionicons name="warning-outline" size={16} color={colors.warning} />
+                        <Text style={styles.warningText}>Online orders currently disabled</Text>
+                    </View>
+                )}
+
+                <View style={styles.cardFooter}>
+                    <Ionicons name="chevron-forward" size={20} color={colors.primary} />
                 </View>
-            </View>
-
-            {item.description ? (
-                <Text style={styles.description}>{item.description}</Text>
-            ) : null}
-
-            {!item.isOnlineOrdersEnabled && item.isOpen && (
-                <View style={styles.warningContainer}>
-                    <Ionicons name="warning-outline" size={16} color={colors.warning} />
-                    <Text style={styles.warningText}>Online orders disabled</Text>
-                </View>
-            )}
-
-            <View style={styles.cardFooter}>
-                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     if (loading) {
         return (
@@ -221,6 +272,41 @@ const styles = StyleSheet.create({
         color: colors.warning,
         marginLeft: 6,
         fontWeight: '600',
+    },
+    queueInfoContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    queueChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.lightBackground,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    queueText: {
+        fontSize: 12,
+        color: colors.text,
+        marginLeft: 6,
+        fontWeight: '500',
+    },
+    demandChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    demandText: {
+        fontSize: 11,
+        fontWeight: '700',
+        marginLeft: 4,
     },
     cardFooter: {
         alignItems: 'flex-end',

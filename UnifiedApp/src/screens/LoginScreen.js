@@ -9,23 +9,11 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
-    Image, // Added Image import
+    Image,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native'; // Removed UtensilsCrossed
-
-// --- NEW PROFESSIONAL THEME ---
-const theme = {
-    primary: '#726ceaff',   // Indigo 600 - Professional Brand Color
-    action: '#D97706',    // Amber 600 - Distinct "Call to Action" button
-    secondary: '#1E293B', // Slate 800 - Deep, readable text
-    background: '#F8FAFC', // Slate 50 - Crisp, clean background
-    surface: '#FFFFFF',   // Pure White input background
-    text: '#0F172A',      // Slate 900
-    textSecondary: '#64748B', // Slate 500
-    border: '#E2E8F0',    // Slate 200
-    error: '#EF4444',
-};
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import colors from '../constants/colors';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -82,11 +70,11 @@ const LoginScreen = ({ navigation }) => {
                         <View style={styles.inputWrapper}>
                             <Text style={styles.label}>Email Address</Text>
                             <View style={styles.inputContainer}>
-                                <Mail size={20} color={theme.textSecondary} style={styles.inputIcon} />
+                                <Mail size={20} color={colors.textSecondary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="student@university.edu"
-                                    placeholderTextColor={theme.textSecondary}
+                                    placeholderTextColor={colors.textSecondary}
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
@@ -98,11 +86,11 @@ const LoginScreen = ({ navigation }) => {
                         <View style={styles.inputWrapper}>
                             <Text style={styles.label}>Password</Text>
                             <View style={styles.inputContainer}>
-                                <Lock size={20} color={theme.textSecondary} style={styles.inputIcon} />
+                                <Lock size={20} color={colors.textSecondary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Enter your password"
-                                    placeholderTextColor={theme.textSecondary}
+                                    placeholderTextColor={colors.textSecondary}
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry={!showPassword}
@@ -113,9 +101,9 @@ const LoginScreen = ({ navigation }) => {
                                     style={styles.eyeIcon}
                                 >
                                     {showPassword ? (
-                                        <EyeOff size={20} color={theme.textSecondary} />
+                                        <EyeOff size={20} color={colors.textSecondary} />
                                     ) : (
-                                        <Eye size={20} color={theme.textSecondary} />
+                                        <Eye size={20} color={colors.textSecondary} />
                                     )}
                                 </TouchableOpacity>
                             </View>
@@ -154,7 +142,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.background,
+        backgroundColor: colors.background, // System Gray 6
     },
     keyboardView: {
         flex: 1,
@@ -168,63 +156,71 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 40,
     },
-    // New Logo Style
     logo: {
-        width: 500,  // Adjust based on your image size
-        height: 400, // Adjust based on your image size
-        marginBottom: -100,
+        width: 300,
+        height: 200,
+        marginBottom: -60,
+        resizeMode: 'contain',
     },
     form: {
         width: '100%',
+        backgroundColor: colors.surface,
+        borderRadius: 20,
+        padding: 24,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 2,
     },
     inputWrapper: {
         marginBottom: 20,
     },
     label: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '600',
-        color: theme.secondary,
+        color: colors.text,
         marginBottom: 8,
         marginLeft: 4,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.surface,
+        backgroundColor: colors.background, // Contrast input bg
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: theme.border,
+        borderColor: colors.border,
         paddingHorizontal: 12,
-        height: 56,
+        height: 52,
     },
     inputIcon: {
-        marginRight: 10,
+        marginRight: 12,
     },
     input: {
         flex: 1,
-        fontSize: 16,
-        color: theme.text,
+        fontSize: 17,
+        color: colors.text,
         height: '100%',
     },
     eyeIcon: {
-        padding: 4,
+        padding: 8,
     },
     forgotPassword: {
         alignSelf: 'flex-end',
         marginBottom: 24,
     },
     forgotPasswordText: {
-        color: theme.primary,
+        color: colors.primary,
         fontWeight: '600',
-        fontSize: 14,
+        fontSize: 15,
     },
     button: {
-        backgroundColor: theme.primary,
-        height: 56,
-        borderRadius: 12,
+        backgroundColor: colors.primary,
+        height: 54,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: theme.primary,
+        shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -234,9 +230,9 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     buttonText: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: colors.white,
+        fontSize: 17,
+        fontWeight: '700',
     },
     footer: {
         flexDirection: 'row',
@@ -244,12 +240,12 @@ const styles = StyleSheet.create({
         marginTop: 24,
     },
     footerText: {
-        color: theme.textSecondary,
+        color: colors.textSecondary,
         fontSize: 15,
     },
     linkText: {
-        color: theme.primary,
-        fontWeight: 'bold',
+        color: colors.primary,
+        fontWeight: '700',
         fontSize: 15,
     },
 });

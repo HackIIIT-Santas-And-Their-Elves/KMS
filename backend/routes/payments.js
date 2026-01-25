@@ -2,7 +2,46 @@ const express = require('express');
 const router = express.Router();
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
+const User = require('../models/User'); // Added User import
 const { protect } = require('../middleware/auth');
+const { sendPushNotification } = require('../utils/notifications');
+
+// Helper to notify canteen owner(s)
+const notifyCanteenOwner = async (canteenId, order) => {
+    try {
+        console.log(`Attempting to notify owners for canteen: ${canteenId}`);
+        const owners = await User.find({ role: 'CANTEEN', canteenId: canteenId });
+        console.log(`Found ${owners.length} owners for canteen ${canteenId}`);
+
+        const shortId = order._id.toString().slice(-4);
+        const itemSummary = order.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+        
+        const notificationPromises = owners.map(async (owner) => {
+            if (!owner.pushToken) {
+                console.log(`Owner ${owner._id} (${owner.name}) has no push token. Skipping.`);
+                return;
+            }
+            
+            console.log(`Notifying Owner/Canteen ${canteenId} about Order #${shortId} (Token: ${owner.pushToken.substring(0, 15)}...)`);
+            try {
+                const result = await sendPushNotification(
+                    owner.pushToken,
+                    'New Order Received! 🔔',
+                    `Order #${shortId}: ${itemSummary} (₹${order.totalAmount})`,
+                    { orderId: order._id, type: 'NEW_ORDER' }
+                );
+                console.log(`Notification sent to owner ${owner._id}. Result:`, JSON.stringify(result));
+                return result;
+            } catch (e) {
+                console.error(`Error notifying owner ${owner._id}:`, e);
+            }
+        });
+        
+        await Promise.all(notificationPromises);
+    } catch (err) {
+        console.error('Canteen notification error:', err);
+    }
+};
 
 // @route   POST /api/payments/initiate
 // @desc    Initiate payment for an order
@@ -123,6 +162,20 @@ router.post('/:id/confirm', protect, async (req, res) => {
             order.status = 'PAID';
             order.generatePickupCode(); // Generate pickup code when payment is confirmed
             await order.save();
+
+            // Notify Canteen Owner
+            await notifyCanteenOwner(order.canteenId, order);
+
+            // Notify User (Buyer)
+            const user = await User.findById(req.user.id);
+            if (user && user.pushToken) {
+                await sendPushNotification(
+                    user.pushToken,
+                    'Order Placed Successfully! 🎉',
+                    `Your order #${order._id.toString().slice(-4)} has been paid and sent to the canteen.`,
+                    { orderId: order._id, status: 'PAID' }
+                );
+            }
         }
 
         res.json({
@@ -168,6 +221,20 @@ router.post('/webhook/paytm', async (req, res) => {
             if (payment.status === 'SUCCESS') {
                 order.status = 'PAID';
                 order.generatePickupCode();
+
+                // Notify Canteen Owner
+                await notifyCanteenOwner(order.canteenId, order);
+
+                 // Notify User (Buyer)
+                 const user = await User.findById(order.userId);
+                 if (user && user.pushToken) {
+                    await sendPushNotification(
+                        user.pushToken,
+                        'Order Placed Successfully! 🎉',
+                        `Your order #${order._id.toString().slice(-4)} has been paid and sent to the canteen.`,
+                        { orderId: order._id, status: 'PAID' }
+                    );
+                }
             } else {
                 order.status = 'FAILED';
             }

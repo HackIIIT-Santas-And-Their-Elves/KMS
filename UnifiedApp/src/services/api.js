@@ -66,6 +66,7 @@ export const authAPI = {
     getProfile: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data),
     changePassword: (currentPassword, newPassword) => api.put('/auth/password', { currentPassword, newPassword }),
+    updatePushToken: (pushToken) => api.put('/auth/push-token', { pushToken }),
 };
 
 // Canteen APIs
@@ -77,6 +78,8 @@ export const canteenAPI = {
     delete: (id) => api.delete(`/canteens/${id}`),
     toggleOpen: (id) => api.post(`/canteens/${id}/toggle-open`),
     toggleOnlineOrders: (id) => api.post(`/canteens/${id}/toggle-online-orders`),
+    getQueueStatus: (id) => api.get(`/canteens/${id}/queue`),
+    getAllQueueStatus: () => api.get('/canteens/queue-status/all'),
 };
 
 // Menu APIs

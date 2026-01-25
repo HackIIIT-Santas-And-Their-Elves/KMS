@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { orderAPI } from '../services/api';
 import colors from '../constants/colors';
 
@@ -17,9 +18,11 @@ const OrderHistoryScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchOrders();
+        }, [])
+    );
 
     const fetchOrders = async () => {
         try {

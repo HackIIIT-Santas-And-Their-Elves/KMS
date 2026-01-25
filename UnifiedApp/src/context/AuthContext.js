@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../services/api';
+import { performTokenSync } from '../utils/notifications';
 
 const AuthContext = createContext();
 
@@ -29,6 +30,11 @@ export const AuthProvider = ({ children }) => {
             if (storedToken && storedUser) {
                 setToken(storedToken);
                 setUser(JSON.parse(storedUser));
+                
+                // Attempt to sync push token for auto-logged in users
+                setTimeout(() => {
+                    performTokenSync();
+                }, 1000); // Small delay to ensure app is ready
             }
         } catch (error) {
             console.error('Error loading auth:', error);
@@ -47,6 +53,9 @@ export const AuthProvider = ({ children }) => {
 
             setToken(data.token);
             setUser(data);
+
+            // Sync push token after successful login
+            performTokenSync();
 
             return { success: true, data };
         } catch (error) {
@@ -75,6 +84,9 @@ export const AuthProvider = ({ children }) => {
 
             setToken(data.token);
             setUser(data);
+            
+            // Sync push token after successful registration
+            performTokenSync();
 
             console.log('✅ Registration successful:', data.role);
             return { success: true, data };

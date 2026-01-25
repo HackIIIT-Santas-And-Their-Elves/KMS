@@ -11,6 +11,74 @@ import QRCode from 'react-native-qrcode-svg';
 import { orderAPI } from '../services/api';
 import colors from '../constants/colors';
 
+const OrderTimeline = ({ currentStatus }) => {
+    // If cancelled or refunded, we don't show the standard timeline
+    if (['CANCELLED', 'REFUNDED', 'CANCELLED_BY_CANTEEN'].includes(currentStatus)) return null;
+
+    const steps = [
+        { key: 'PAID', labels: ['Paid'], icon: 'card-outline' },
+        { key: 'ACCEPTED', labels: ['Accepted'], icon: 'checkmark-circle-outline' },
+        { key: 'PREPARING', labels: ['Preparing'], icon: 'restaurant-outline' },
+        { key: 'READY', labels: ['Ready'], icon: 'fast-food-outline' },
+        { key: 'COMPLETED', labels: ['Completed'], icon: 'happy-outline' },
+    ];
+
+    // Map Backend Status directly to Timeline Index
+    const statusMap = {
+        'CREATED': -1, // Not yet paid
+        'PAID': 0,
+        'ACCEPTED': 1,
+        'PREPARING': 2,
+        'READY': 3,
+        'COMPLETED': 4
+    };
+
+    const currentStepIndex = statusMap[currentStatus] !== undefined ? statusMap[currentStatus] : -1;
+
+    // Calculate progress width for the active line
+    const progressWidth = steps.length > 1 
+        ? (currentStepIndex / (steps.length - 1)) * 100 
+        : 0;
+
+    return (
+        <View style={styles.timelineContainer}>
+            {/* Background Grey Line */}
+            <View style={styles.timelineBackgroundLine} />
+            {/* Active Colored Line */}
+            <View style={[styles.timelineActiveLine, { width: `${progressWidth}%` }]} />
+            
+            <View style={styles.stepsContainer}>
+                {steps.map((step, index) => {
+                    const isActive = index <= currentStepIndex;
+                    const isCurrent = index === currentStepIndex;
+                    
+                    return (
+                        <View key={step.key} style={styles.stepWrapper}>
+                            <View style={[
+                                styles.stepCircle, 
+                                isActive ? styles.stepActive : styles.stepInactive,
+                                isCurrent && styles.stepCurrent
+                            ]}>
+                                <Ionicons 
+                                    name={step.icon} 
+                                    size={16} 
+                                    color={isActive ? colors.white : colors.textSecondary} 
+                                />
+                            </View>
+                            <Text style={[
+                                styles.stepLabelText,
+                                isActive ? styles.stepLabelActive : styles.stepLabelInactive
+                            ]}>
+                                {step.labels[0]}
+                            </Text>
+                        </View>
+                    );
+                })}
+            </View>
+        </View>
+    );
+};
+
 const OrderDetailsScreen = ({ route }) => {
     const { orderId } = route.params;
     const [order, setOrder] = useState(null);
@@ -49,6 +117,8 @@ const OrderDetailsScreen = ({ route }) => {
 
     return (
         <ScrollView style={styles.container}>
+            <OrderTimeline currentStatus={order.status} />
+
             {order.pickupCode && order.status === 'READY' && (
                 <View style={styles.qrSection}>
                     <Text style={styles.qrTitle}>Pickup Code</Text>
@@ -306,6 +376,78 @@ const styles = StyleSheet.create({
         color: colors.info,
         fontSize: 14,
         flex: 1,
+    },
+    // Timeline Styles
+    timelineContainer: {
+        backgroundColor: colors.white,
+        paddingVertical: 24,
+        paddingHorizontal: 16,
+        marginBottom: 8,
+    },
+    stepsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        position: 'relative',
+        zIndex: 2,
+    },
+    timelineBackgroundLine: {
+        position: 'absolute',
+        top: 40,
+        left: 46,
+        right: 46,
+        height: 2,
+        backgroundColor: colors.border,
+        zIndex: 1,
+    },
+    timelineActiveLine: {
+        position: 'absolute',
+        top: 40,
+        left: 46,
+        // width set dynamically
+        height: 2,
+        backgroundColor: colors.primary,
+        zIndex: 1,
+    },
+    stepWrapper: {
+        alignItems: 'center',
+        width: 60,
+    },
+    stepCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+        borderWidth: 2,
+        backgroundColor: colors.white,
+    },
+    stepActive: {
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
+    },
+    stepInactive: {
+        backgroundColor: colors.white,
+        borderColor: colors.border,
+    },
+    stepCurrent: {
+        transform: [{ scale: 1.15 }],
+        borderColor: colors.primary,
+        borderWidth: 2,
+        // removed backgroundColor override to keep primary if active
+    },
+    stepLabelText: {
+        fontSize: 10,
+        textAlign: 'center',
+        marginTop: 4,
+    },
+    stepLabelActive: {
+        color: colors.primary,
+        fontWeight: 'bold',
+    },
+    stepLabelInactive: {
+        color: colors.textSecondary,
     },
 });
 

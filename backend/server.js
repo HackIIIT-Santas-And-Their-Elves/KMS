@@ -123,6 +123,15 @@ app.use((req, res) => {
     });
 });
 
+// Log registered routes
+console.log('Registered routes:');
+app._router.stack
+  .filter(r => r.route && r.route.path)
+  .forEach(r => {
+    const methods = Object.keys(r.route.methods).map(m => m.toUpperCase()).join(', ');
+    console.log(methods, r.route.path);
+  });
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
