@@ -27,13 +27,10 @@ npm install
 ```
 
 2. Start the app
-
 If this is an Expo-managed project:
 
-```powershell
-npm start
-# or
-expo start
+```bash
+npx expo start
 ```
 
 For bare React Native projects use `npx react-native run-android` or `run-ios` (requires native toolchains).
