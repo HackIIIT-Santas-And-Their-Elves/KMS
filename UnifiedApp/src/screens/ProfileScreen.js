@@ -105,6 +105,7 @@ const ProfileScreen = () => {
         setEditModalVisible(true);
     };
 
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>

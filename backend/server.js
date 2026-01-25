@@ -18,23 +18,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     const startTime = Date.now();
     const requestId = `[${new Date().toISOString()}]`;
-    
+
     // Log incoming request
     console.log(`\n${requestId} ─────────────────────────────────────────`);
     console.log(`📥 ${req.method} ${req.path}`);
     console.log(`🔗 Full URL: ${req.method} ${req.protocol}://${req.get('host')}${req.path}`);
-    
+
     if (req.query && Object.keys(req.query).length > 0) {
         console.log(`📋 Query Params:`, JSON.stringify(req.query, null, 2));
     }
-    
+
     if (req.body && Object.keys(req.body).length > 0) {
         // Don't log passwords
         const bodyToLog = { ...req.body };
         if (bodyToLog.password) bodyToLog.password = '***hidden***';
         console.log(`📤 Request Body:`, JSON.stringify(bodyToLog, null, 2));
     }
-    
+
     if (req.headers.authorization) {
         console.log(`🔐 Authorization: Bearer ${req.headers.authorization.substring(0, 20)}...`);
     }
@@ -44,7 +44,7 @@ app.use((req, res, next) => {
     const originalSend = res.send.bind(res);
     let responseData = null;
 
-    res.json = function(data) {
+    res.json = function (data) {
         responseData = data;
         const duration = Date.now() - startTime;
         console.log(`\n✅ Response Status: ${res.statusCode}`);
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
         return originalJson(data);
     };
 
-    res.send = function(data) {
+    res.send = function (data) {
         const duration = Date.now() - startTime;
         console.log(`\n✅ Response Status: ${res.statusCode}`);
         console.log(`⏱️  Response Time: ${duration}ms`);
@@ -106,7 +106,7 @@ app.use((err, req, res, next) => {
     console.error(`📋 Error Message:`, err.message);
     console.error(`📚 Stack:`, err.stack);
     console.error(`${errorId} ─────────────────────────────────────────\n`);
-    
+
     res.status(500).json({
         success: false,
         message: 'Something went wrong!',

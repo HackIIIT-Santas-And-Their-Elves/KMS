@@ -291,6 +291,50 @@ router.post('/:id/toggle-open', protect, authorize('CANTEEN', 'ADMIN'), async (r
     }
 });
 
+// @route   POST /api/canteens/:id/toggle-status
+// @desc    Toggle canteen open/close status with secret key (Public endpoint)
+// @access  Public (requires secret key in body)
+router.post('/:id/toggle-status', async (req, res) => {
+    try {
+        const { secretKey } = req.body;
+
+        // Validate secret key
+        if (!secretKey || secretKey !== process.env.CANTEEN_TOGGLE_SECRET) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or missing secret key'
+            });
+        }
+
+        const canteen = await Canteen.findById(req.params.id);
+
+        if (!canteen) {
+            return res.status(404).json({
+                success: false,
+                message: 'Canteen not found'
+            });
+        }
+
+        // Toggle the status
+        canteen.isOpen = !canteen.isOpen;
+        await canteen.save();
+
+        console.log(`✅ Canteen ${canteen.name} toggled to ${canteen.isOpen ? 'OPEN' : 'CLOSED'} via secret key`);
+
+        res.json({
+            success: true,
+            data: canteen,
+            message: `Canteen is now ${canteen.isOpen ? 'OPEN' : 'CLOSED'}`
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+
 // @route   POST /api/canteens/:id/toggle-online-orders
 // @desc    Toggle online orders enabled/disabled
 // @access  Private (Canteen owner only)
