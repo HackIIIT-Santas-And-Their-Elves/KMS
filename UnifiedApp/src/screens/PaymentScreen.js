@@ -59,8 +59,12 @@ const PaymentScreen = ({ navigation }) => {
                                 // Clear cart
                                 clearCart();
 
-                                // Navigate to order tracking
-                                navigation.navigate('OrderTracking', { orderId: order._id });
+                                // Navigate to order tracking in Orders tab
+                                navigation.popToTop();
+                                navigation.navigate('Orders', {
+                                    screen: 'OrderDetails',
+                                    params: { orderId: order._id }
+                                });
                             } catch (error) {
                                 Alert.alert('Error', 'Payment failed. Please try again.');
                                 console.error('Payment error:', error);
