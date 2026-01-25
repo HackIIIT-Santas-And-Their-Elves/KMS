@@ -89,10 +89,7 @@ node server.js
 ```powershell
 cd UnifiedApp
 npm install
-# If this is an Expo app:
-npm start
-# or
-expo start
+npx expo start
 ```
 
 Notes
