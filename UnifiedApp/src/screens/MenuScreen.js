@@ -18,7 +18,7 @@ const MenuScreen = ({ route, navigation }) => {
     const { canteen } = route.params;
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { addToCart, getTotalItems, getItemQuantity, updateQuantity, removeFromCart } = useCart();
+    const { addToCart, getTotalItems, getItemQuantity, updateQuantity, removeFromCart, getTotal } = useCart();
 
     useEffect(() => {
         fetchMenu();
@@ -126,13 +126,13 @@ const MenuScreen = ({ route, navigation }) => {
                         )}
                         <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
                     </View>
-                    
+
                     <Text style={styles.price}>₹{item.price}</Text>
-                    
+
                     {item.description ? (
                         <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
                     ) : null}
-                    
+
                     <Text style={styles.category}>{item.category}</Text>
                 </View>
 
@@ -145,7 +145,7 @@ const MenuScreen = ({ route, navigation }) => {
                             <Ionicons name="fast-food-outline" size={32} color={colors.textSecondary} />
                         </View>
                     )}
-                    
+
                     {/* Overlapping Add Button */}
                     <View style={styles.addButtonWrapper}>
                         {item.isAvailable ? (
@@ -160,6 +160,28 @@ const MenuScreen = ({ route, navigation }) => {
             </View>
         </View>
     );
+
+    const renderBottomCartBar = () => {
+        const totalItems = getTotalItems();
+        if (totalItems === 0) return null;
+
+        return (
+            <View style={styles.bottomCartContainer}>
+                <View style={styles.bottomCartContent}>
+                    <View>
+                        <Text style={styles.cartItemCount}>{totalItems} {totalItems === 1 ? 'Item' : 'Items'} | ₹{getTotal()}</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.viewCartButton}
+                        onPress={() => navigation.navigate('Cart')}
+                    >
+                        <Text style={styles.viewCartText}>View Cart</Text>
+                        <Ionicons name="cart-outline" size={20} color={colors.white} style={{ marginLeft: 8 }} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    };
 
     if (loading) {
         return (
@@ -180,7 +202,7 @@ const MenuScreen = ({ route, navigation }) => {
                 data={menuItems}
                 renderItem={renderMenuItem}
                 keyExtractor={(item) => item._id}
-                contentContainerStyle={styles.listContainer}
+                contentContainerStyle={[styles.listContainer, getTotalItems() > 0 && { paddingBottom: 100 }]}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="fast-food-outline" size={64} color={colors.textSecondary} />
@@ -188,6 +210,7 @@ const MenuScreen = ({ route, navigation }) => {
                     </View>
                 }
             />
+            {renderBottomCartBar()}
         </View>
     );
 };
@@ -393,6 +416,44 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.textSecondary,
         marginTop: 16,
+    },
+    bottomCartContainer: {
+        position: 'absolute',
+        bottom: 20,
+        left: 16,
+        right: 16,
+        backgroundColor: colors.primary,
+        borderRadius: 12,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    bottomCartContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+    },
+    cartItemCount: {
+        color: colors.white,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    cartExtraInfo: {
+        color: colors.white,
+        fontSize: 12,
+        opacity: 0.9,
+    },
+    viewCartButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    viewCartText: {
+        color: colors.white,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
