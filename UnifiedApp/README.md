@@ -1,3 +1,61 @@
+# UnifiedApp — Mobile application (React Native)
+
+This folder contains the React Native mobile application used by students, canteen staff, and admins. It is organized to be easy to navigate and extend.
+
+Key files
+- App entry: [UnifiedApp/App.js](UnifiedApp/App.js)
+- API config: [UnifiedApp/src/config/api.js](UnifiedApp/src/config/api.js)
+- Cloudinary config: [UnifiedApp/src/config/cloudinary.js](UnifiedApp/src/config/cloudinary.js)
+
+Folder structure (src)
+- `assets/` — images, fonts and static assets.
+- `config/` — app configuration such as API base URL and cloudinary keys.
+- `constants/` — shared constants (colors, sizes).
+- `context/` — React Context providers (`AuthContext`, `CartContext`).
+- `navigation/` — app navigator(s). Primary file: [UnifiedApp/src/navigation/AppNavigator.js](UnifiedApp/src/navigation/AppNavigator.js).
+- `screens/` — individual screens (Login, Register, Menu, Cart, Orders, Admin dashboard, etc.). Add screens here and register them in the navigator.
+- `services/` — API wrappers (e.g., `api.js`) for HTTP calls.
+- `utils/` — utilities such as `imageUpload.js`.
+
+How to run
+
+1. Install dependencies
+
+```powershell
+cd UnifiedApp
+npm install
+```
+
+2. Start the app
+
+If this is an Expo-managed project:
+
+```powershell
+npm start
+# or
+expo start
+```
+
+For bare React Native projects use `npx react-native run-android` or `run-ios` (requires native toolchains).
+
+Configuration
+- API base URL: update [UnifiedApp/src/config/api.js](UnifiedApp/src/config/api.js). For a device use `http://<your-host-ip>:<port>/api` instead of `localhost`.
+- Cloudinary keys: [UnifiedApp/src/config/cloudinary.js](UnifiedApp/src/config/cloudinary.js).
+
+Development notes
+- Add a new screen: create a file in `src/screens/`, then add it to `AppNavigator.js`.
+- To call backend APIs centrally, use `src/services/api.js` so authentication headers and error handling are consistent.
+- Use `context/` for global state (auth, cart). Prefer Context + Reducer for complex state.
+
+Code style
+- Follow existing file naming and component structure. Prefer function components with hooks.
+
+Common tasks
+- Update API endpoints: change `API_BASE_URL` in `src/config/api.js`.
+- Add UI: create components/screens in `src/screens` and update navigator.
+- Image uploads: use `src/utils/imageUpload.js` and cloudinary config.
+
+If you want, I can add a troubleshooting section and common emulator/device tips.
 # KMS Unified App
 
 A unified React Native application for the Khana Management System (KMS) that combines Student, Canteen, and Admin functionalities into a single app with role-based access.
@@ -162,7 +220,3 @@ To add new features:
 2. Add route in appropriate navigator (Student/Canteen/Admin)
 3. Update context if shared state is needed
 4. Add API calls in `src/services/api.js`
-
-## License
-
-Part of the Khana Management System (KMS)

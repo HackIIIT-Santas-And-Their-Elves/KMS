@@ -1,266 +1,109 @@
-# KMS - Khana Management System
+# KMS | Khana Management System ( About the App )
 
-Complete food ordering system for campus canteens with React Native mobile apps and Node.js backend.
+KMS is a comprehensive campus food ordering and canteen management platform designed to improve the efficiency, reliability, and transparency of food services within our university campus. The system consists of React Native mobile applications and a Node.js backend, supporting students, canteen operators, and administrators through a unified ecosystem.
 
-## 🎯 Features
+## Problem Statement
 
-### Student App
-- Browse canteens and view open/close status
-- Browse menu items with veg/non-veg indicators
-- Add items to cart and place orders
-- Mock Paytm UPI payment integration
-- Real-time order tracking
-- QR code for secure pickup
-- Order history
+Campus canteens often suffer from inconsistent operating hours, long waiting times for orders, and lack of order visibility. Students frequently walk to canteens only to find them closed or overcrowded, while canteen operators struggle with demand unpredictability and order management during peak hours.
 
-### Canteen App
-- Dashboard with canteen open/close toggle
-- Online orders enable/disable
-- Menu management (Add, Edit, Delete, Toggle Availability)
-- View and manage incoming orders
-- Update order status (Accept → Preparing → Ready)
-- QR scanner for order pickup verification
+KMS aims to address these challenges by introducing real-time canteen availability, controlled pre-ordering, and structured order workflows.
 
-### Admin App
-- System overview dashboard
-- Canteen management
-- User management
+## Solution Overview
 
-## 🏗️ Architecture
+KMS introduces a mobile-first solution where:
 
-- **Backend**: Node.js + Express + MongoDB
-- **Frontend**: React Native with Expo
-- **Authentication**: JWT with role-based access control
-- **Payment**: Mock Paytm UPI (production-ready structure)
-- **QR Codes**: For secure order pickup
+Canteen availability is explicitly controlled by canteen operators, with ease for canteen operators as they just have to use our iot based device to toggle their status.
 
-## 📋 Prerequisites
+Pre-orders are disabled by default and enabled only when the canteen is prepared to handle online demand.
 
-- Node.js (v16 or higher)
+Students can place orders in advance and track them in real time.
+
+Order pickup is secured using QR-based verification to prevent misuse.
+
+## Core Features
+### Student Application
+
+View all campus canteens with real-time open and closed status.
+
+Browse canteen menus with clear vegetarian and non-vegetarian indicators.
+
+Add items to a cart and place pre-orders.
+
+Mock payment integration for demonstration purposes.
+
+Live order status tracking from placement to readiness.
+
+QR code generation for secure and authenticated order pickup.
+
+Access complete order history for reference and tracking.
+
+### Canteen Application
+
+Toggle canteen availability to control visibility for students.
+
+Enable or disable online pre-orders independently of physical availability.
+
+Manage menus with fine-grained control:
+
+Add, edit, and delete menu items.
+
+Toggle item availability during peak or low inventory periods.
+
+View and manage incoming orders in real time.
+
+Update order status through a structured workflow:
+
+Accepted → Preparing → Ready.
+
+Scan QR codes at pickup counters to verify and complete orders securely.
+
+# KMS - Khana Management System ( Code for Debugging )
+
+This repository contains a campus food-ordering platform: a backend API and a React Native mobile application (UnifiedApp). The READMEs in this repo explain how the parts are organized and how to run them locally.
+
+Quick links
+- Root README: this file
+- Backend code: [backend](backend/)
+- Mobile app: [UnifiedApp](UnifiedApp/)
+
+Prerequisites
+- Node.js (16+)
+- npm or yarn
+- Python 3.8+ and `pip` (for the Flask server if used)
 - MongoDB (local or Atlas)
-- Expo CLI
-- Expo Go app on your mobile device
+- (Optional) Expo CLI (`npm install -g expo-cli`) if you use Expo for the mobile app
 
-## 🚀 Getting Started
+Quick Start (recommended)
 
-### 1. Backend Setup
+1) Backend (Node/Express)
 
-```bash
+```powershell
 cd backend
 npm install
-
-# Create .env file (copy from .env.example)
-# Update MONGODB_URI if needed
-
-# Start MongoDB (if running locally)
-# mongod
-
-# Start backend server
-npm run dev
+# create or edit .env (see backend/README.md)
+node server.js
 ```
 
-The backend will run on `http://localhost:5000`
+2) Mobile app (UnifiedApp)
 
-### 2. Student App Setup
-
-```bash
-cd StudentApp
+```powershell
+cd UnifiedApp
 npm install
-
-# Update API URL in src/config/api.js if needed
-# For physical device, use your computer's IP address
-
-npx expo start
+# If this is an Expo app:
+npm start
+# or
+expo start
 ```
 
-Scan the QR code with Expo Go app to run on your device.
+Notes
+- The mobile app reads the API base URL from [UnifiedApp/src/config/api.js](UnifiedApp/src/config/api.js).
+- Backend DB configuration is in [backend/config/db.js](backend/config/db.js).
 
-### 3. Canteen App Setup
+Testing and utilities
+- There are some test and helper scripts at repository root such as `test-signup.sh` and tests under `backend/` (e.g., `test-auth.js`). See `backend/README.md` for running backend tests.
 
-```bash
-cd CanteenApp
-npm install
-npx expo start
-```
+Where to go next
+- See [backend/README.md](backend/README.md) for details about the backend structure and how to run it (Flask and Node instructions).
+- See [UnifiedApp/README.md](UnifiedApp/README.md) for the mobile app structure and how to run and develop screens and navigation.
 
-### 4. Admin App Setup
-
-```bash
-cd AdminApp
-npm install
-npx expo start
-```
-
-## 📱 Testing the System
-
-### Create Test Users
-
-Use a tool like Postman or Thunder Client to create test users:
-
-**Student User:**
-```json
-POST http://localhost:5000/api/auth/register
-{
-  "name": "Test Student",
-  "email": "student@test.com",
-  "password": "password123",
-  "role": "STUDENT"
-}
-```
-
-**Canteen User:**
-```json
-POST http://localhost:5000/api/auth/register
-{
-  "name": "Canteen Staff",
-  "email": "canteen@test.com",
-  "password": "password123",
-  "role": "CANTEEN",
-  "canteenId": "<canteen_id_here>"
-}
-```
-
-**Admin User:**
-```json
-POST http://localhost:5000/api/auth/register
-{
-  "name": "Admin",
-  "email": "admin@test.com",
-  "password": "password123",
-  "role": "ADMIN"
-}
-```
-
-### Create a Canteen (Admin only)
-
-```json
-POST http://localhost:5000/api/auth/login
-{
-  "email": "admin@test.com",
-  "password": "password123"
-}
-
-# Use the token from login response
-POST http://localhost:5000/api/canteens
-Authorization: Bearer <token>
-{
-  "name": "Main Canteen",
-  "location": "Ground Floor, Building A",
-  "description": "Main campus canteen",
-  "maxBulkSize": 50
-}
-```
-
-### Complete Order Flow
-
-1. **Student App**: Login → Browse canteens → View menu → Add to cart → Checkout → Pay (mock)
-2. **Canteen App**: Login → Toggle canteen open → View incoming order → Accept → Prepare → Mark Ready
-3. **Student App**: View order status → See QR code when ready
-4. **Canteen App**: Scan QR code → Complete order
-
-## 🔑 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Get current user
-
-### Canteens
-- `GET /api/canteens` - List all canteens
-- `POST /api/canteens` - Create canteen (Admin)
-- `POST /api/canteens/:id/toggle-open` - Toggle open/close
-- `POST /api/canteens/:id/toggle-online-orders` - Toggle online orders
-
-### Menu
-- `GET /api/menu/canteen/:canteenId` - Get menu for canteen
-- `POST /api/menu` - Create menu item (Canteen/Admin)
-- `PUT /api/menu/:id` - Update menu item
-- `PATCH /api/menu/:id/toggle-availability` - Toggle availability
-- `DELETE /api/menu/:id` - Delete menu item
-
-### Orders
-- `POST /api/orders` - Create order
-- `GET /api/orders/my` - Get user's orders
-- `GET /api/orders/canteen/:canteenId` - Get canteen orders
-- `POST /api/orders/:id/accept` - Accept order
-- `POST /api/orders/:id/prepare` - Mark as preparing
-- `POST /api/orders/:id/ready` - Mark as ready
-- `POST /api/orders/:id/complete` - Complete with pickup code
-
-### Payments
-- `POST /api/payments/initiate` - Initiate payment
-- `POST /api/payments/:id/confirm` - Confirm payment (mock)
-
-## 📂 Project Structure
-
-```
-Heck/
-├── backend/
-│   ├── config/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   └── server.js
-├── StudentApp/
-│   ├── src/
-│   │   ├── screens/
-│   │   ├── navigation/
-│   │   ├── context/
-│   │   ├── services/
-│   │   └── constants/
-│   └── App.js
-├── CanteenApp/
-│   └── (similar structure)
-└── AdminApp/
-    └── (similar structure)
-```
-
-## 🔧 Configuration
-
-### Backend (.env)
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/kms
-JWT_SECRET=your_secret_key
-JWT_EXPIRE=7d
-```
-
-### Frontend (src/config/api.js)
-```javascript
-export const API_BASE_URL = 'http://localhost:5000/api';
-// For physical device: 'http://192.168.1.x:5000/api'
-```
-
-## 🐛 Troubleshooting
-
-### Backend won't start
-- Ensure MongoDB is running
-- Check if port 5000 is available
-- Verify .env file exists with correct values
-
-### Can't connect from mobile app
-- Use your computer's IP address instead of localhost
-- Ensure both devices are on the same network
-- Check firewall settings
-
-### QR Scanner not working
-- Grant camera permissions in device settings
-- Ensure you're using a physical device (camera doesn't work in simulator)
-
-## 🚀 Future Enhancements
-
-- Real Paytm UPI integration
-- Push notifications
-- Analytics dashboard
-- Order refunds
-- User ratings and reviews
-- Multiple payment methods
-- Physical switch integration for canteen open/close
-
-## 📄 License
-
-MIT
-
-## 👥 Contributors
-
-Built for HackIIIT 2026
+If anything in these READMEs should be expanded (setup examples, env vars, CI steps), tell me which area you'd like more detail on and I'll extend it.
