@@ -227,7 +227,7 @@ router.get('/canteen/:canteenId/completed', protect, authorize('CANTEEN', 'ADMIN
         // Fetch all completed and cancelled orders
         const completedOrders = await Order.find({
             canteenId: req.params.canteenId,
-            status: { $in: ['COMPLETED', 'CANCELLED'] }
+            status: { $in: ['COMPLETED', 'CANCELLED', 'REFUNDED'] }
         })
             .populate('userId', 'name email')
             .sort('-createdAt');
@@ -595,6 +595,24 @@ router.post('/:id/cancel', protect, async (req, res) => {
         order.status = 'CANCELLED';
         order.cancelledBy = cancelledBy;
         await order.save();
+
+        // Auto-refund demo logic
+        if (order.status === 'CANCELLED' && cancelledBy === 'CANTEEN') {
+            const orderId = order._id;
+            console.log(`Order ${orderId} cancelled by canteen. Scheduling auto-refund in 30s...`);
+            setTimeout(async () => {
+                try {
+                    const orderToRefund = await Order.findById(orderId);
+                    if (orderToRefund && orderToRefund.status === 'CANCELLED') {
+                        orderToRefund.status = 'REFUNDED';
+                        await orderToRefund.save();
+                        console.log(`Order ${orderId} auto-refunded.`);
+                    }
+                } catch (err) {
+                    console.error(`Error auto-refunding order ${orderId}:`, err);
+                }
+            }, 30000); // 30 seconds
+        }
 
         res.json({
             success: true,

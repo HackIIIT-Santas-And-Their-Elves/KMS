@@ -260,6 +260,7 @@ const DashboardScreen = ({ navigation }) => {
             READY: { backgroundColor: '#9C27B0' },
             COMPLETED: { backgroundColor: '#4CAF50' },
             CANCELLED: { backgroundColor: '#EF4444' },
+            REFUNDED: { backgroundColor: '#9333ea' },
         };
         return colors[status] || { backgroundColor: '#757575' };
     };
@@ -523,7 +524,7 @@ const DashboardScreen = ({ navigation }) => {
                                     </View>
 
                                     {/* Cancel Button */}
-                                    {!['COMPLETED', 'CANCELLED', 'FAILED'].includes(selectedOrder.status) && (
+                                    {!['COMPLETED', 'CANCELLED', 'FAILED', 'REFUNDED'].includes(selectedOrder.status) && (
                                         <TouchableOpacity
                                             style={styles.cancelButton}
                                             onPress={handleCancelOrder}

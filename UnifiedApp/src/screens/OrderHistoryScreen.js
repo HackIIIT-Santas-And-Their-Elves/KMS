@@ -52,6 +52,8 @@ const OrderHistoryScreen = ({ navigation }) => {
             case 'CANCELLED':
             case 'FAILED':
                 return colors.error;
+            case 'REFUNDED':
+                return '#9333ea'; // Purple for refunded
             default:
                 return colors.textSecondary;
         }

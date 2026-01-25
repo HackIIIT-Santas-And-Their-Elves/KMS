@@ -54,6 +54,7 @@ const OrderTrackingScreen = ({ route, navigation }) => {
             case 'COMPLETED':
                 return colors.success;
             default:
+                if (status === 'REFUNDED') return '#9333ea';
                 return colors.textSecondary;
         }
     };
@@ -71,6 +72,7 @@ const OrderTrackingScreen = ({ route, navigation }) => {
             case 'COMPLETED':
                 return 'checkmark-circle';
             default:
+                if (status === 'REFUNDED') return 'cash-outline';
                 return 'time';
         }
     };
