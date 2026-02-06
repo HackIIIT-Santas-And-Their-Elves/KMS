@@ -141,6 +141,37 @@ router.get('/:id/queue', async (req, res) => {
     }
 });
 
+// @route   GET /api/canteens/:id/status
+// @desc    Get canteen open/close status
+// @access  Public
+router.get('/:id/status', async (req, res) => {
+    try {
+        const canteen = await Canteen.findById(req.params.id).select('_id name isOpen');
+
+        if (!canteen) {
+            return res.status(404).json({
+                success: false,
+                message: 'Canteen not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: {
+                canteenId: canteen._id,
+                name: canteen.name,
+                isOpen: canteen.isOpen,
+                status: canteen.isOpen ? 'OPEN' : 'CLOSED'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // @route   GET /api/canteens/:id
 // @desc    Get single canteen
 // @access  Public
